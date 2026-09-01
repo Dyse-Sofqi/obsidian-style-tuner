@@ -170,7 +170,7 @@ export class SettingsMarkup extends Component {
 						true
 					)
 				);
-				searchComponent.setPlaceholder('Search Style Settings...');
+				searchComponent.setPlaceholder('Search Style Tuner...');
 				// move the search component from the back to the front
 				if (setting.controlEl.lastChild) {
 					setting.nameEl.appendChild(setting.controlEl.lastChild);
@@ -210,7 +210,7 @@ export class SettingsMarkup extends Component {
 				this.addChild(settingsComponentTree);
 				this.settingsComponentTrees.push(settingsComponentTree);
 			} catch (e) {
-				console.error('Style Settings | Failed to render section', e);
+				console.error('Style Tuner | Failed to render section', e);
 			}
 		}
 	}

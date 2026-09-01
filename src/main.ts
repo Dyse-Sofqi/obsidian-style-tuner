@@ -43,8 +43,8 @@ export default class CSSSettingsPlugin extends Plugin {
 		this.registerView(viewType, (leaf) => new SettingsView(this, leaf));
 
 		this.addCommand({
-			id: 'show-style-settings-leaf',
-			name: 'Show style settings view',
+			id: 'show-style-tuner-leaf',
+			name: 'Show Style Tuner view',
 			callback: () => {
 				this.activateView();
 			},
@@ -146,13 +146,14 @@ export default class CSSSettingsPlugin extends Plugin {
 				const settingsSearch: any = (window as any).SettingsSearch;
 
 				settingsSearch.removeTabResources('obsidian-style-settings');
+				settingsSearch.removeTabResources('obsidian-style-tuner');
 
 				for (const parsedCSSSetting of this.settingsList) {
 					settingsSearch.addResources(
 						...parsedCSSSetting.settings.map((x) => {
 							const settingsSearchResource: SettingsSeachResource = {
-								tab: 'obsidian-style-settings',
-								name: 'Style Settings',
+								tab: 'obsidian-style-tuner',
+								name: 'Style Tuner',
 								text: getTitle(x) ?? '',
 								desc: getDescription(x) ?? '',
 							};

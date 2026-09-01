@@ -1,10 +1,12 @@
-# Obsidian Style Settings Plugin
+# Obsidian Style Tuner
 
-This plugin allows snippet, theme, and plugin CSS files to define a set of configuration options. It then allows users to see all the tweakable settings in one settings pane. Style Settings allows both toggling classes on and off the `body` element, as well as setting numeric, string, and color CSS variables.
+Fine-tune the look of your vault: this plugin allows snippet, theme, and plugin CSS files to define a set of configuration options, then shows all the tweakable settings in one settings pane. Style Tuner supports toggling classes on and off the `body` element, as well as setting numeric, string, and color CSS variables.
 
-**[This CSS Snippet](obsidian-default-theme.css) can be used to adjust every CSS variable of the default Obsidian theme.** 
+**[This CSS Snippet](obsidian-default-theme.css) can be used to adjust every CSS variable of the default Obsidian theme.**
 
-Configurable settings are defined by comments within CSS files beginning with `/* @settings`. These comments must contain YAML with `name`, `id`, and `settings` properties. Style Settings will scan for these comments in all CSS loaded by Obsidian from the `snippets`, `themes`, and `plugins` directories under your vault's configuration directory (`%yourVault%/.obsidian/`).  Please see the [Obsidian Docs](https://help.obsidian.md/Home) for more information.
+> Style Tuner is an independently maintained fork of [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) by [mgmeyers](https://github.com/mgmeyers), licensed under GPL-3.0. All credit for the original design and implementation belongs to the upstream author; this fork exists so the plugin can continue evolving as **Style Tuner** under its own identity. It parses the same `/* @settings` blocks as the original, so existing themes and snippets work without changes — but it is a separate plugin and should not be enabled at the same time as Style Settings.
+
+Configurable settings are defined by comments within CSS files beginning with `/* @settings`. These comments must contain YAML with `name`, `id`, and `settings` properties. Style Tuner will scan for these comments in all CSS loaded by Obsidian from the `snippets`, `themes`, and `plugins` directories under your vault's configuration directory (`%yourVault%/.obsidian/`). Please see the [Obsidian Docs](https://help.obsidian.md/Home) for more information.
 
 For example, adding this to a CSS snippet in your vault's snippets directory (`%yourVault%/.obsidian/snippets`):
 
@@ -37,7 +39,24 @@ settings:
 
 will result in:
 
-<img src="https://raw.githubusercontent.com/mgmeyers/obsidian-style-settings/main/screenshots/example01.png" alt="Example output of plugin" />
+<img src="https://raw.githubusercontent.com/Dyse-Sofqi/obsidian-style-tuner/main/screenshots/example01.png" alt="Example output of plugin" />
+
+## Installation
+
+### 1. Via BRAT (Beta Reviewer's Auto-update Tool)
+
+1. Install and enable the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
+2. Run the command `BRAT: Add a beta plugin for testing`.
+3. Enter `Dyse-Sofqi/obsidian-style-tuner` and confirm.
+
+### 2. Manual Installation
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release of this repository.
+2. Create the folder `<vault>/.obsidian/plugins/obsidian-style-tuner/` and copy the three files into it.
+3. Enable **Style Tuner** in Obsidian's community plugins settings.
+
+> [!CAUTION]
+> Do not enable Style Tuner and Style Settings at the same time. They both render `/* @settings` configuration panes and applying the same variables twice can produce conflicting results.
 
 Each setting definition must be separated by a dash (`-`). There are 7 setting types.
 
@@ -547,7 +566,7 @@ settings:
 
 ## Plugin Support
 
-Plugins can specify a style setting config in the plugin's CSS. Plugins must call `app.workspace.trigger("parse-style-settings")` when the plugin loads in order for Style Settings to be notified of CSS changes.
+Plugins can specify a style setting config in the plugin's CSS. Plugins must call `app.workspace.trigger("parse-style-settings")` when the plugin loads in order for Style Tuner to be notified of CSS changes. This event name is kept for compatibility with the original Style Settings plugin interface.
 
 ## Localization Support
 
@@ -600,3 +619,7 @@ settings:
 
 */
 ```
+
+## License
+
+Style Tuner is licensed under the [GNU General Public License v3.0](LICENSE.md), following the license of the upstream Style Settings project. Contributions are welcome under the same license.

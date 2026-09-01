@@ -242,7 +242,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		const hex = color.toHEXA().toString();
 		if (!isValidSavedColor(hex)) {
 			console.warn(
-				`Style Settings: invalid saved color "${hex}" for --${id}; skipping.`
+				`Style Tuner: invalid saved color "${hex}" for --${id}; skipping.`
 			);
 			instance.hide();
 			return;

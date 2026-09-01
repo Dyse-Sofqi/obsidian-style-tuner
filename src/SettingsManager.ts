@@ -54,7 +54,7 @@ export function generateColorVariables(
 		parsedColor = chroma(colorStr);
 	} catch {
 		console.warn(
-			`Style Settings: could not parse color "${colorStr}" for variable --${key}; skipping.`
+			`Style Tuner: could not parse color "${colorStr}" for variable --${key}; skipping.`
 		);
 		return [];
 	}
@@ -309,7 +309,7 @@ function getCSSVariables(
 					});
 				} else if (rawColor) {
 					console.warn(
-						`Style Settings: invalid saved color "${rawColor}" for --${setting.id}; skipping.`
+						`Style Tuner: invalid saved color "${rawColor}" for --${setting.id}; skipping.`
 					);
 				}
 
@@ -351,7 +351,7 @@ function getCSSVariables(
 					});
 				} else if (rawColor) {
 					console.warn(
-						`Style Settings: invalid saved color "${rawColor}" for --${setting.id}; skipping.`
+						`Style Tuner: invalid saved color "${rawColor}" for --${setting.id}; skipping.`
 					);
 				}
 				continue;

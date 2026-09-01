@@ -1,10 +1,11 @@
 {
-	"id": "obsidian-style-settings",
-	"name": "Style Settings",
-	"version": "1.0.9",
+	"id": "obsidian-style-tuner",
+	"name": "Style Tuner",
+	"version": "1.0.0",
 	"minAppVersion": "0.11.5",
-	"description": "Offers controls for adjusting theme, plugin, and snippet CSS variables.",
-	"author": "mgmeyers",
-	"authorUrl": "https://github.com/mgmeyers/obsidian-style-settings",
+	"description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls.",
+	"author": "Sofqi",
+	"authorUrl": "https://github.com/Dyse-Sofqi",
+	"fundingUrl": "https://github.com/Dyse-Sofqi/ziping/blob/main/zanshang.jpg",
 	"isDesktopOnly": false
 }

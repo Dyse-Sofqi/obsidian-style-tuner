@@ -56,7 +56,7 @@ const locale = localeMap[lang || 'en'];
 
 export function t(str: keyof typeof en): string {
 	if (!locale) {
-		console.error('Error: Style Settings locale not found', lang);
+		console.error('Error: Style Tuner locale not found', lang);
 	}
 
 	return (locale && locale[str]) || en[str];

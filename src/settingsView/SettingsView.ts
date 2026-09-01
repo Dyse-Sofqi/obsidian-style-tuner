@@ -51,6 +51,6 @@ export class SettingsView extends ItemView {
 	}
 
 	getDisplayText() {
-		return 'Style Settings';
+		return 'Style Tuner';
 	}
 }
