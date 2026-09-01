@@ -2,13 +2,13 @@
 
 This repository is the independent maintenance fork of
 [mgmeyers/obsidian-style-settings](https://github.com/mgmeyers/obsidian-style-settings),
-renamed to **Style Tuner** (`obsidian-style-tuner`).
+renamed to **Style Tuner** (`style-tuner`).
 
 ## What was changed during handover
 
 ### Identity (branding surface)
 
-- `manifest.json`: plugin id `obsidian-style-settings` → `obsidian-style-tuner`,
+- `manifest.json`: plugin id `obsidian-style-settings` → `style-tuner`,
   display name "Style Settings" → "Style Tuner", author set to Sofqi
   (`Dyse-Sofqi`), funding URL carried over from the maintainer's other plugin,
   version reset to `1.0.0`.
@@ -28,9 +28,10 @@ renamed to **Style Tuner** (`obsidian-style-tuner`).
 - Command `show-style-settings-leaf` → `show-style-tuner-leaf`,
   display name "Show style settings view" → "Show Style Tuner view".
 - Item view `getDisplayText()` → "Style Tuner".
-- Settings-search integration: registers under tab id `obsidian-style-tuner`
-  and name "Style Tuner"; also unregisters the legacy `obsidian-style-settings`
-  tab resources to clean up stale entries.
+- Settings-search integration: registers under tab id `style-tuner`
+  and name "Style Tuner"; also unregisters the legacy
+  `obsidian-style-settings` and `obsidian-style-tuner` tab resources to
+  clean up stale entries.
 - Log/warning prefixes: "Style Settings: ..." → "Style Tuner: ...".
 - Console locale error message updated.
 

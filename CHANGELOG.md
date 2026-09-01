@@ -21,7 +21,7 @@
 
 ### 变更
 
-- **品牌重置** — 插件 id `obsidian-style-settings` → `obsidian-style-tuner`,名称 "Style Settings" → "Style Tuner",作者 Sofqi,独立版本历史自 `1.0.0` 起。
+- **品牌重置** — 插件 id `obsidian-style-settings` → `style-tuner`,名称 "Style Settings" → "Style Tuner",作者 Sofqi,独立版本历史自 `1.0.0` 起。
 - **最低版本要求** — 提升至 Obsidian `1.5.0`(界面美化使用 `:has()`、`color-mix()` 等现代 CSS 特性)。
 - **发布合规** — 仓库不再跟踪 `main.js`/`main.css` 等构建产物,发布版本由 CI 构建并附加;`styles.css` 由 `esbuild` 构建时自动从 `src/css/*` 按导入级联顺序生成,release notes 由 GitHub 自动生成。
 - **生态兼容保持不变** — `/* @settings` 格式、`parse-style-settings` 工作区事件、`css-settings-manager` body 类、`style-settings-*` 内部 CSS 类,以及全部 24 种界面语言回退,均与上游一致。

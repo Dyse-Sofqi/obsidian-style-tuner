@@ -44,7 +44,7 @@ Style Tuner 是 [Style Settings](https://github.com/mgmeyers/obsidian-style-sett
 #### 2. 手动安装
 
 1. 从本仓库的最新 [Release](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) 下载 `main.js`、`manifest.json`、`styles.css`。
-2. 在 `<vault>/.obsidian/plugins/obsidian-style-tuner/` 目录下放入这三个文件。
+2. 在 `<vault>/.obsidian/plugins/style-tuner/` 目录下放入这三个文件。
 3. 在 Obsidian 的「第三方插件」设置中启用 **Style Tuner**。
 
 > [!CAUTION]
@@ -52,7 +52,7 @@ Style Tuner 是 [Style Settings](https://github.com/mgmeyers/obsidian-style-sett
 
 ### 数据存储
 
-你的全部调校值保存在 `<vault>/.obsidian/plugins/obsidian-style-tuner/data.json`,只存储与默认值不同的覆盖项。**卸载插件会删除该文件**(主题与片段文件本身不受影响)——卸载前请用设置面板的导出功能备份,或直接复制 `data.json`。
+你的全部调校值保存在 `<vault>/.obsidian/plugins/style-tuner/data.json`,只存储与默认值不同的覆盖项。**卸载插件会删除该文件**(主题与片段文件本身不受影响)——卸载前请用设置面板的导出功能备份,或直接复制 `data.json`。
 
 ### 供作者使用:`/* @settings` 参考文档(英文)
 

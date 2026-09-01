@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-style-tuner",
+  "name": "style-tuner",
   "version": "1.0.0",
   "description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls.",
   "main": "main.js",

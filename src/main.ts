@@ -149,12 +149,13 @@ export default class CSSSettingsPlugin extends Plugin {
 
 				settingsSearch.removeTabResources('obsidian-style-settings');
 				settingsSearch.removeTabResources('obsidian-style-tuner');
+				settingsSearch.removeTabResources('style-tuner');
 
 				for (const parsedCSSSetting of this.settingsList) {
 					settingsSearch.addResources(
 						...parsedCSSSetting.settings.map((x) => {
 							const settingsSearchResource: SettingsSeachResource = {
-								tab: 'obsidian-style-tuner',
+								tab: 'style-tuner',
 								name: 'Style Tuner',
 								text: getTitle(x) ?? '',
 								desc: getDescription(x) ?? '',
@@ -189,6 +190,8 @@ export default class CSSSettingsPlugin extends Plugin {
 			window.SettingsSearch.removeTabResources('obsidian-style-settings');
 			// @ts-ignore
 			window.SettingsSearch.removeTabResources('obsidian-style-tuner');
+			// @ts-ignore
+			window.SettingsSearch.removeTabResources('style-tuner');
 		}
 	}
 

@@ -1,14 +1,8 @@
-Style Tuner — a fork of Style Settings for Obsidian
+Style Tuner - a fork of Style Settings for Obsidian
 Copyright (C) 2026 Dyse-Sofqi
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version. See the full license text below.
 
 The original Style Settings plugin is Copyright (C) mgmeyers and
 contributors, also released under the GNU General Public License.
-
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
