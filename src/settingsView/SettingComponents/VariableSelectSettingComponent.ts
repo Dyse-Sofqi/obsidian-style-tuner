@@ -51,6 +51,7 @@ export class VariableSelectSettingComponent extends AbstractSettingComponent {
 			);
 			dropdown.onChange((value) => {
 				this.settingsManager.setSetting(this.sectionId, this.setting.id, value);
+				this.updateModifiedState();
 			});
 
 			this.dropdownComponent = dropdown;
@@ -61,6 +62,7 @@ export class VariableSelectSettingComponent extends AbstractSettingComponent {
 			b.onClick(() => {
 				this.dropdownComponent.setValue(this.setting.default);
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
+				this.updateModifiedState();
 			});
 			b.setTooltip(resetTooltip);
 		});

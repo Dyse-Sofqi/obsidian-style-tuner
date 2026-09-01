@@ -38,6 +38,7 @@ export class VariableNumberSliderSettingComponent extends AbstractSettingCompone
 						this.setting.id,
 						value
 					);
+					this.updateModifiedState();
 				},
 				250,
 				true
@@ -58,6 +59,7 @@ export class VariableNumberSliderSettingComponent extends AbstractSettingCompone
 			b.onClick(() => {
 				this.sliderComponent.setValue(this.setting.default);
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
+				this.updateModifiedState();
 			});
 			b.setTooltip(resetTooltip);
 		});

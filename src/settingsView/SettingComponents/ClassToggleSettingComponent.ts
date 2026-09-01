@@ -26,6 +26,7 @@ export class ClassToggleSettingComponent extends AbstractSettingComponent {
 			toggle.setValue(value !== undefined ? !!value : !!this.setting.default);
 			toggle.onChange((value) => {
 				this.settingsManager.setSetting(this.sectionId, this.setting.id, value);
+				this.updateModifiedState();
 			});
 
 			this.toggleComponent = toggle;
@@ -38,6 +39,7 @@ export class ClassToggleSettingComponent extends AbstractSettingComponent {
 
 				this.toggleComponent.setValue(value);
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
+				this.updateModifiedState();
 			});
 			b.setTooltip(resetTooltip);
 		});

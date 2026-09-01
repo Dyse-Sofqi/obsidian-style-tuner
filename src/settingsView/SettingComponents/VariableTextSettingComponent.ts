@@ -44,6 +44,7 @@ export class VariableTextSettingComponent extends AbstractSettingComponent {
 						this.setting.id,
 						sanitizeText(value)
 					);
+					this.updateModifiedState();
 				},
 				250,
 				true
@@ -66,6 +67,7 @@ export class VariableTextSettingComponent extends AbstractSettingComponent {
 			b.onClick(() => {
 				this.textComponent.setValue(this.setting.default);
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
+				this.updateModifiedState();
 			});
 			b.setTooltip(resetTooltip);
 		});

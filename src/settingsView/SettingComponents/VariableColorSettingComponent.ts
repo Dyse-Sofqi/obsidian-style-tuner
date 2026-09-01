@@ -99,6 +99,7 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 				this.setting.id,
 				hex
 			);
+			this.updateModifiedState();
 
 			instance.hide();
 			instance.addSwatch(hex);
@@ -121,6 +122,7 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 				pickr.setColor(resetColor);
 				pickerEl.style.setProperty('--pcr-color', resetColor || '');
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
+				this.updateModifiedState();
 			});
 			b.setTooltip(resetTooltip);
 		});

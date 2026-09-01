@@ -14,6 +14,7 @@ import {
 } from './SettingsValidation';
 import './css/pickerOverrides.css';
 import './css/settings.css';
+import './css/beautify.css';
 import { CSSSettingsTab } from './settingsView/CSSSettingsTab';
 import { SettingType } from './settingsView/SettingComponents/types';
 import { SettingsView, viewType } from './settingsView/SettingsView';

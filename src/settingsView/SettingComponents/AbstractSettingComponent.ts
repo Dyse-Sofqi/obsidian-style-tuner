@@ -2,7 +2,8 @@ import { CSSSetting } from '../../SettingHandlers';
 import { CSSSettingsManager } from '../../SettingsManager';
 import { getDescription, getTitle } from '../../Utils';
 import fuzzysort from 'fuzzysort';
-import { Component } from 'obsidian';
+import { Component, Setting } from 'obsidian';
+import { SettingType } from './types';
 
 export abstract class AbstractSettingComponent extends Component {
 	parent: AbstractSettingComponent | HTMLElement;
@@ -12,6 +13,8 @@ export abstract class AbstractSettingComponent extends Component {
 	setting: CSSSetting;
 	settingsManager: CSSSettingsManager;
 	isView: boolean;
+	/** Rendered row element; populated by concrete components in render(). */
+	settingEl?: Setting;
 
 	constructor(
 		parent: AbstractSettingComponent | HTMLElement,
@@ -38,6 +41,48 @@ export abstract class AbstractSettingComponent extends Component {
 
 	onload(): void {
 		this.render();
+		this.updateModifiedState();
+	}
+
+	/**
+	 * True when the user has stored a custom value for this setting
+	 * (themed colors count as modified when either theme slot is stored).
+	 */
+	isModified(): boolean {
+		const setting = this.setting;
+
+		if (setting.type === SettingType.HEADING) {
+			return false;
+		}
+
+		if (setting.type === SettingType.VARIABLE_THEMED_COLOR) {
+			return (
+				this.settingsManager.getSetting(
+					this.sectionId,
+					`${setting.id}@@light`
+				) !== undefined ||
+				this.settingsManager.getSetting(
+					this.sectionId,
+					`${setting.id}@@dark`
+				) !== undefined
+			);
+		}
+
+		return (
+			this.settingsManager.getSetting(this.sectionId, setting.id) !==
+			undefined
+		);
+	}
+
+	/**
+	 * Refreshes the `is-modified` state class on the rendered setting row.
+	 * Call after saving or resetting a value.
+	 */
+	updateModifiedState(): void {
+		this.settingEl?.settingEl?.toggleClass(
+			'is-modified',
+			this.isModified()
+		);
 	}
 
 	onunload(): void {

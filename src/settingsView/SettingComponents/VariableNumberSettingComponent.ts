@@ -41,6 +41,7 @@ export class VariableNumberSettingComponent extends AbstractSettingComponent {
 						this.setting.id,
 						parsed
 					);
+					this.updateModifiedState();
 				},
 				250,
 				true
@@ -59,6 +60,7 @@ export class VariableNumberSettingComponent extends AbstractSettingComponent {
 			b.onClick(() => {
 				this.textComponent.setValue(this.setting.default.toString());
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
+				this.updateModifiedState();
 			});
 			b.setTooltip(resetTooltip);
 		});

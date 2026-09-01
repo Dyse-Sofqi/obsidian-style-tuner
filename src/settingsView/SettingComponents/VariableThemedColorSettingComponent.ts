@@ -175,6 +175,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 			pickrLight.setColor(resetColor);
 			themeLightWrapper.style.setProperty('--pcr-color', resetColor);
 			this.settingsManager.clearSetting(this.sectionId, idLight);
+			this.updateModifiedState();
 		});
 		themeLightReset.setTooltip(resetTooltip);
 	}
@@ -228,6 +229,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 			pickrDark.setColor(resetColor);
 			themeDarkWrapper.style.setProperty('--pcr-color', resetColor);
 			this.settingsManager.clearSetting(this.sectionId, idDark);
+			this.updateModifiedState();
 		});
 		themeDarkReset.setTooltip(resetTooltip);
 	}
@@ -253,6 +255,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 			id,
 			hex
 		);
+		this.updateModifiedState();
 
 		instance.hide();
 		instance.addSwatch(hex);

@@ -52,6 +52,7 @@ export class ClassMultiToggleSettingComponent extends AbstractSettingComponent {
 
 			dropdown.onChange((value) => {
 				this.settingsManager.setSetting(this.sectionId, this.setting.id, value);
+				this.updateModifiedState();
 				prevValue = value;
 			});
 
@@ -63,6 +64,7 @@ export class ClassMultiToggleSettingComponent extends AbstractSettingComponent {
 			b.onClick(() => {
 				this.dropdownComponent.setValue(this.setting.default || 'none');
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
+				this.updateModifiedState();
 			});
 			b.setTooltip(resetTooltip);
 		});
