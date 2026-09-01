@@ -1,5 +1,6 @@
 import { CSSSetting, Heading } from '../../SettingHandlers';
 import { getDescription, getTitle } from '../../Utils';
+import { t } from '../../lang/helpers';
 import { AbstractSettingComponent } from './AbstractSettingComponent';
 import { ClassMultiToggleSettingComponent } from './ClassMultiToggleSettingComponent';
 import { ClassToggleSettingComponent } from './ClassToggleSettingComponent';
@@ -214,7 +215,12 @@ export class HeadingSettingComponent extends AbstractSettingComponent {
 
 		this.resultsEl = this.settingEl.nameEl.createSpan({
 			cls: 'style-settings-filter-result-count',
-			text: this.filterMode ? `${this.filterResultCount} Results` : undefined,
+			text: this.filterMode
+				? t('{{count}} Results').replace(
+						'{{count}}',
+						String(this.filterResultCount)
+					)
+				: undefined,
 		});
 
 		this.settingEl.settingEl.addEventListener('click', () => {
@@ -323,7 +329,7 @@ export class HeadingSettingComponent extends AbstractSettingComponent {
 		if (resetFn) {
 			this.settingEl.addExtraButton((b) => {
 				b.setIcon('reset')
-					.setTooltip('Reset all settings to default')
+					.setTooltip(t('Reset all settings to default'))
 					.onClick(resetFn);
 			});
 		}
@@ -332,12 +338,14 @@ export class HeadingSettingComponent extends AbstractSettingComponent {
 	private addExportButton() {
 		this.settingEl.addExtraButton((b) => {
 			b.setIcon('install');
-			b.setTooltip('Export settings');
+			b.setTooltip(t('Export settings'));
 			b.extraSettingsEl.onClickEvent((e) => {
 				e.stopPropagation();
 				let title = getTitle(this.setting);
 				title =
-					this.sectionName === title ? title : `${this.sectionName} > ${title}`;
+					this.sectionName === title
+						? title
+						: `${this.sectionName} ${t('>')} ${title}`;
 				this.settingsManager.export(
 					title,
 					this.settingsManager.getSettings(

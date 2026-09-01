@@ -15,6 +15,7 @@ import {
 import './css/pickerOverrides.css';
 import './css/settings.css';
 import './css/beautify.css';
+import { t } from './lang/helpers';
 import { CSSSettingsTab } from './settingsView/CSSSettingsTab';
 import { SettingType } from './settingsView/SettingComponents/types';
 import { SettingsView, viewType } from './settingsView/SettingsView';
@@ -45,7 +46,7 @@ export default class CSSSettingsPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'show-style-tuner-leaf',
-			name: 'Show Style Tuner view',
+			name: t('Show Style Tuner view'),
 			callback: () => {
 				this.activateView();
 			},

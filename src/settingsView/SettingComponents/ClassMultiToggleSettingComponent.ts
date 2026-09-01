@@ -66,7 +66,7 @@ export class ClassMultiToggleSettingComponent extends AbstractSettingComponent {
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
 				this.updateModifiedState();
 			});
-			b.setTooltip(resetTooltip);
+			b.setTooltip(resetTooltip());
 		});
 
 		this.settingEl.settingEl.dataset.id = this.setting.id;
