@@ -48,7 +48,9 @@ export class SettingsMarkup extends Component {
 	/**
 	 * Builds the export section list: every currently parsed section plus
 	 * sections that only exist as stored data (their theme/snippet/plugin
-	 * is disabled), so leftover customizations stay exportable.
+	 * is disabled) and carry meaningful customizations, so leftover
+	 * customizations stay exportable. Orphaned sections are only listed
+	 * when they actually hold stored keys; empty orphans never appear.
 	 */
 	private getExportSections(): ExportSectionOption[] {
 		const stored = this.plugin.settingsManager.settings;
@@ -56,6 +58,7 @@ export class SettingsMarkup extends Component {
 
 		for (const key of Object.keys(stored)) {
 			const sectionId = key.split('@@')[0];
+			if (!sectionId) continue;
 			counts[sectionId] = (counts[sectionId] ?? 0) + 1;
 		}
 
@@ -67,7 +70,9 @@ export class SettingsMarkup extends Component {
 		}));
 
 		for (const sectionId of Object.keys(counts).sort()) {
-			if (!parsedIds.has(sectionId)) {
+			// Only orphaned sections with at least one stored key are
+			// worth offering for export; empty leftovers are skipped.
+			if (!parsedIds.has(sectionId) && (counts[sectionId] ?? 0) > 0) {
 				sections.push({
 					id: sectionId,
 					name: sectionId,
