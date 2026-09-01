@@ -47,6 +47,11 @@ export const en = {
 	'Sections': 'Sections',
 	'Uncheck all': 'Uncheck all',
 	'Check all': 'Check all',
+	'Only checked sections are included in the exported configuration.':
+		'Only checked sections are included in the exported configuration.',
+	'Active': 'Active',
+	'Source disabled': 'Source disabled',
+	'{{checked}} of {{total}} selected': '{{checked}} of {{total}} selected',
 
 	// Heading (themed color defaults + section export title separator)
 	'Default (light): ': 'Default (light): ',

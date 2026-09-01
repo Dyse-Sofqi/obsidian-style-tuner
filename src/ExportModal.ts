@@ -127,17 +127,25 @@ export class ExportModal extends Modal {
 	/**
 	 * Renders the section checkbox list (all checked by default) plus a
 	 * check/uncheck-all toggle; changes refresh the export payload.
+	 * Sections whose source is disabled are grouped and badged.
 	 */
 	private displaySectionPicker(contentEl: HTMLElement) {
-		const listSetting = new Setting(contentEl).setName(t('Sections'));
+		const sections = this.sections ?? [];
+		const listSetting = new Setting(contentEl)
+			.setName(t('Sections'))
+			.setDesc(
+				t('Only checked sections are included in the exported configuration.')
+			);
 
-		const listEl = listSetting.controlEl.createDiv(
+		const wrapperEl = listSetting.controlEl.createDiv(
 			'style-settings-export-sections'
 		);
-		const checkboxInputs: HTMLInputElement[] = [];
 
-		for (const section of this.sections ?? []) {
-			const row = listEl.createDiv('style-settings-export-section');
+		const checkboxInputs: HTMLInputElement[] = [];
+		let allChecked = true;
+
+		const addRow = (section: ExportSectionOption) => {
+			const row = wrapperEl.createDiv('style-settings-export-section');
 			const label = row.createEl('label');
 			const checkbox = label.createEl('input', { type: 'checkbox' });
 			checkbox.checked = true;
@@ -148,30 +156,86 @@ export class ExportModal extends Modal {
 					this.selectedSections.delete(section.id);
 				}
 				this.refreshOutput();
+				updateSummary();
 			});
-			label.createSpan({ text: section.name });
+			label.createSpan({
+				text: section.name,
+				cls: 'style-settings-export-section-name',
+			});
+			if (section.orphaned) {
+				label.createSpan({
+					text: t('Source disabled'),
+					cls: 'style-settings-export-badge',
+				});
+			}
+			if (section.count !== undefined) {
+				label.createSpan({
+					text: String(section.count),
+					cls: 'style-settings-export-count',
+				});
+			}
 			checkboxInputs.push(checkbox);
+		};
+
+		const active = sections.filter((s) => !s.orphaned);
+		const orphaned = sections.filter((s) => s.orphaned);
+		const showGroups = active.length > 0 && orphaned.length > 0;
+
+		if (showGroups) {
+			wrapperEl
+				.createDiv('style-settings-export-group-heading')
+				.setText(t('Active'));
+			for (const section of active) {
+				addRow(section);
+			}
+			wrapperEl
+				.createDiv('style-settings-export-group-heading')
+				.setText(t('Source disabled'));
+			for (const section of orphaned) {
+				addRow(section);
+			}
+		} else {
+			for (const section of sections) {
+				addRow(section);
+			}
 		}
 
-		// Check/uncheck-all convenience toggle
-		const toggleAll = listSetting.controlEl.createEl('a', {
+		// Toolbar: check/uncheck-all toggle plus a live selection summary.
+		const toggleAll = wrapperEl.createDiv('style-settings-export-toggle');
+		const toggleAllLink = toggleAll.createEl('a', {
 			cls: 'style-settings-export-toggle-all',
 			text: t('Uncheck all'),
 			href: '#',
 		});
-		let allChecked = true;
-		toggleAll.addEventListener('click', (e) => {
+		const summaryEl = toggleAll.createSpan({
+			cls: 'style-settings-export-summary',
+		});
+
+		const updateSummary = () => {
+			const checked = checkboxInputs.filter((c) => c.checked).length;
+			summaryEl.setText(
+				t('{{checked}} of {{total}} selected')
+					.replace('{{checked}}', String(checked))
+					.replace('{{total}}', String(sections.length))
+			);
+			allChecked = checked === sections.length;
+			toggleAllLink.setText(allChecked ? t('Uncheck all') : t('Check all'));
+		};
+
+		toggleAllLink.addEventListener('click', (e) => {
 			e.preventDefault();
-			allChecked = !allChecked;
+			const nextChecked = !allChecked;
 			for (const input of checkboxInputs) {
-				input.checked = allChecked;
+				input.checked = nextChecked;
 			}
-			this.selectedSections = allChecked
-				? new Set((this.sections ?? []).map((s) => s.id))
+			this.selectedSections = nextChecked
+				? new Set(sections.map((s) => s.id))
 				: new Set();
 			this.refreshOutput();
-			toggleAll.setText(allChecked ? t('Uncheck all') : t('Check all'));
+			updateSummary();
 		});
+
+		updateSummary();
 	}
 
 	onClose() {

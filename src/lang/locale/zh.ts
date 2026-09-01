@@ -46,6 +46,11 @@ export const zh = {
 	'Sections': '区块',
 	'Uncheck all': '全部取消勾选',
 	'Check all': '全部勾选',
+	'Only checked sections are included in the exported configuration.':
+		'仅已勾选的区块会包含在导出的配置中。',
+	'Active': '当前启用',
+	'Source disabled': '来源未启用',
+	'{{checked}} of {{total}} selected': '已选 {{checked}} / {{total}}',
 
 	// Heading (themed color defaults + section export title separator)
 	'Default (light): ': '默认（浅色）：',

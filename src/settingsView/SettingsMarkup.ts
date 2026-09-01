@@ -1,6 +1,7 @@
 import { CSSSetting, ParsedCSSSettings } from '../SettingHandlers';
 import { ErrorList } from '../Utils';
 import { t } from '../lang/helpers';
+import { ExportSectionOption } from '../ExportModal';
 import CSSSettingsPlugin from '../main';
 import {
 	buildSettingComponentTree,
@@ -42,6 +43,41 @@ export class SettingsMarkup extends Component {
 
 	display(): void {
 		this.generate(this.settings);
+	}
+
+	/**
+	 * Builds the export section list: every currently parsed section plus
+	 * sections that only exist as stored data (their theme/snippet/plugin
+	 * is disabled), so leftover customizations stay exportable.
+	 */
+	private getExportSections(): ExportSectionOption[] {
+		const stored = this.plugin.settingsManager.settings;
+		const counts: Record<string, number> = {};
+
+		for (const key of Object.keys(stored)) {
+			const sectionId = key.split('@@')[0];
+			counts[sectionId] = (counts[sectionId] ?? 0) + 1;
+		}
+
+		const parsedIds = new Set(this.settings.map((s) => s.id));
+		const sections = this.settings.map((s) => ({
+			id: s.id,
+			name: s.name,
+			count: counts[s.id] ?? 0,
+		}));
+
+		for (const sectionId of Object.keys(counts).sort()) {
+			if (!parsedIds.has(sectionId)) {
+				sections.push({
+					id: sectionId,
+					name: sectionId,
+					orphaned: true,
+					count: counts[sectionId],
+				});
+			}
+		}
+
+		return sections;
 	}
 
 	removeChildren() {
@@ -152,7 +188,7 @@ export class SettingsMarkup extends Component {
 							t('All settings'),
 							this.plugin.settingsManager.settings,
 							// Per-section picker: export only checked sections
-							this.settings.map((s) => ({ id: s.id, name: s.name }))
+							this.getExportSections()
 						);
 					});
 				}
