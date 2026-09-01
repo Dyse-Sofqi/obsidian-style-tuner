@@ -43,6 +43,11 @@ export const en = {
 	'Paste config here...': 'Paste config here...',
 	'Save': 'Save',
 
+	// Export modal section picker
+	'Sections': 'Sections',
+	'Uncheck all': 'Uncheck all',
+	'Check all': 'Check all',
+
 	// Heading (themed color defaults + section export title separator)
 	'Default (light): ': 'Default (light): ',
 	'Default (dark): ': 'Default (dark): ',

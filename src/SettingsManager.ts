@@ -628,8 +628,12 @@ export class CSSSettingsManager {
 		this.initClasses();
 	}
 
-	export(section: string, config: Record<string, SettingValue>) {
-		new ExportModal(this.plugin.app, this.plugin, section, config).open();
+	export(
+		section: string,
+		config: Record<string, SettingValue>,
+		sections?: { id: string; name: string }[]
+	) {
+		new ExportModal(this.plugin.app, this.plugin, section, config, sections ?? null).open();
 	}
 
 	import() {

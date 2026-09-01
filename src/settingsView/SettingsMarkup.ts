@@ -150,7 +150,9 @@ export class SettingsMarkup extends Component {
 						e.preventDefault();
 						this.plugin.settingsManager.export(
 							t('All settings'),
-							this.plugin.settingsManager.settings
+							this.plugin.settingsManager.settings,
+							// Per-section picker: export only checked sections
+							this.settings.map((s) => ({ id: s.id, name: s.name }))
 						);
 					});
 				}

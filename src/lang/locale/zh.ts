@@ -42,6 +42,11 @@ export const zh = {
 	'Paste config here...': '在此粘贴配置…',
 	'Save': '保存',
 
+	// Export modal section picker
+	'Sections': '区块',
+	'Uncheck all': '全部取消勾选',
+	'Check all': '全部勾选',
+
 	// Heading (themed color defaults + section export title separator)
 	'Default (light): ': '默认（浅色）：',
 	'Default (dark): ': '默认（深色）：',
