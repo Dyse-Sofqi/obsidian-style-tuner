@@ -4,7 +4,7 @@
 
 像调音台一样,精细调校你的 Obsidian 外观。
 
-[![GitHub Release](https://img.shields.io/github/v/release/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%2342b883)](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) [![License](https://img.shields.io/github/license/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&color=%2342b883)](LICENSE.md) [![Obsidian Min App](https://img.shields.io/badge/Obsidian-%3E%3D1.5.0-%234a7ec1?style=flat-square&logo=obsidian&logoColor=%234a7ec1)](https://obsidian.md) [![GitHub Stars](https://img.shields.io/github/stars/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%23e4b341)](https://github.com/Dyse-Sofqi/obsidian-style-tuner)
+[![GitHub Release](https://img.shields.io/github/v/release/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%2342b883)](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) [![License](https://img.shields.io/github/license/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&color=%2342b883)](LICENSE) [![Obsidian Min App](https://img.shields.io/badge/Obsidian-%3E%3D1.5.0-%234a7ec1?style=flat-square&logo=obsidian&logoColor=%234a7ec1)](https://obsidian.md) [![GitHub Stars](https://img.shields.io/github/stars/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%23e4b341)](https://github.com/Dyse-Sofqi/obsidian-style-tuner)
 
 </div>
 
@@ -645,4 +645,4 @@ settings:
 
 ## License
 
-Style Tuner is licensed under the [GNU General Public License v3.0](LICENSE.md), following the license of the upstream Style Settings project. Contributions are welcome under the same license.
+Style Tuner is licensed under the [GNU General Public License v3.0](LICENSE), following the license of the upstream Style Settings project. Contributions are welcome under the same license.
