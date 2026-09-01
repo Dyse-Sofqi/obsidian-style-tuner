@@ -30,6 +30,12 @@ export class SettingsView extends ItemView {
 	}
 
 	onload(): void {
+		// A lazily mounted restored leaf (e.g. an inactive tab brought back
+		// after a restart) never received setSettings; pull current data.
+		if (!this.settings && this.plugin.settingsList) {
+			this.setSettings(this.plugin.settingsList, this.plugin.errorList);
+		}
+
 		this.settingsMarkup = this.addChild(
 			new SettingsMarkup(this.plugin.app, this.plugin, this.contentEl, true)
 		);

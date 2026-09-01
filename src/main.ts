@@ -78,10 +78,11 @@ export default class CSSSettingsPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 			if (this.settingsList) {
 				this.app.workspace.getLeavesOfType(viewType).forEach((leaf) => {
-					(leaf.view as SettingsView).setSettings(
-						this.settingsList,
-						this.errorList
-					);
+					// Restored leaves may still hold a placeholder view until
+					// they are mounted; only push data to real views.
+					if (leaf.view instanceof SettingsView) {
+						leaf.view.setSettings(this.settingsList, this.errorList);
+					}
 				});
 			}
 		});
@@ -124,10 +125,9 @@ export default class CSSSettingsPlugin extends Plugin {
 
 			this.settingsTab.setSettings(this.settingsList, this.errorList);
 			this.app.workspace.getLeavesOfType(viewType).forEach((leaf) => {
-				(leaf.view as SettingsView).setSettings(
-					this.settingsList,
-					this.errorList
-				);
+				if (leaf.view instanceof SettingsView) {
+					leaf.view.setSettings(this.settingsList, this.errorList);
+				}
 			});
 			this.settingsManager.setConfig(this.settingsList);
 			this.settingsManager.initClasses();
@@ -186,6 +186,8 @@ export default class CSSSettingsPlugin extends Plugin {
 		if (this.app.plugins.plugins['settings-search']?.loaded) {
 			// @ts-ignore
 			window.SettingsSearch.removeTabResources('obsidian-style-settings');
+			// @ts-ignore
+			window.SettingsSearch.removeTabResources('obsidian-style-tuner');
 		}
 	}
 
@@ -303,7 +305,9 @@ export default class CSSSettingsPlugin extends Plugin {
 					this.settingsManager.setSetting(section.id, setting.id, value);
 					this.settingsTab.rerender();
 					for (const leaf of this.app.workspace.getLeavesOfType(viewType)) {
-						(leaf.view as SettingsView).rerender();
+						if (leaf.view instanceof SettingsView) {
+							leaf.view.rerender();
+						}
 					}
 				},
 			})
