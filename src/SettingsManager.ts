@@ -408,21 +408,47 @@ function getCSSVariables(
 export class CSSSettingsManager {
 	settings: CSSSettings;
 	plugin: CSSSettingsPlugin;
-	styleTag: HTMLStyleElement;
 	config: MappedSettings = {};
 	gradients: Record<string, ColorGradient[]> = {};
+	private appliedVarKeys = new Set<string>();
+	private themeObserver: MutationObserver | null = null;
+	private lastTheme: 'light' | 'dark' | null = null;
 
 	constructor(plugin: CSSSettingsPlugin) {
 		this.plugin = plugin;
 		this.settings = {};
-		this.styleTag = document.createElement('style');
-		this.styleTag.id = 'css-settings-manager';
 
-		document.getElementsByTagName('head')[0].appendChild(this.styleTag);
+		// Obsidian's community-plugin review disallows creating/attaching
+		// <style> elements; all CSS must live in styles.css. The custom
+		// properties are therefore applied as inline styles on <body>, and
+		// re-applied when the light/dark theme toggles (which previously
+		// happened through body.theme-light / body.theme-dark selectors).
+		this.watchThemeChanges();
+	}
+
+	private getCurrentTheme(): 'light' | 'dark' {
+		return document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+	}
+
+	private watchThemeChanges(): void {
+		this.lastTheme = this.getCurrentTheme();
+		this.themeObserver = new MutationObserver(() => {
+			const theme = this.getCurrentTheme();
+			if (theme !== this.lastTheme) {
+				this.lastTheme = theme;
+				this.setCSSVariables();
+			}
+		});
+		this.themeObserver.observe(document.body, {
+			attributes: true,
+			attributeFilter: ['class'],
+		});
 	}
 
 	cleanup() {
-		this.styleTag.remove();
+		this.themeObserver?.disconnect();
+		this.themeObserver = null;
+		this.clearAppliedVariables();
 		this.removeClasses();
 	}
 
@@ -504,31 +530,36 @@ export class CSSSettingsManager {
 			this
 		);
 
-		this.styleTag.innerText = `
-			body.css-settings-manager {
-				${vars.reduce((combined, current) => {
-					return combined + `--${current.key}: ${current.value}; `;
-				}, '')}
-			}
-
-			body.theme-light.css-settings-manager {
-				${themedLight.reduce((combined, current) => {
-					return combined + `--${current.key}: ${current.value}; `;
-				}, '')}
-			}
-
-			body.theme-dark.css-settings-manager {
-				${themedDark.reduce((combined, current) => {
-					return combined + `--${current.key}: ${current.value}; `;
-				}, '')}
-			}
-			`
-			.trim()
-			.replace(/[\r\n\s]+/g, ' ');
+		// Apply the variables as inline styles on <body> instead of a
+		// <style> element (which Obsidian's plugin review forbids). Only
+		// the active theme's values can be applied at a time, so the
+		// theme observer re-runs this method on light/dark toggles.
+		this.clearAppliedVariables();
+		this.applyVariables(vars);
+		this.applyVariables(
+			this.getCurrentTheme() === 'dark' ? themedDark : themedLight
+		);
 
 		this.plugin.app.workspace.trigger('css-change', {
 			source: 'style-settings',
 		});
+	}
+
+	private applyVariables(kvs: VariableKV): void {
+		const style = document.body.style;
+		for (const { key, value } of kvs) {
+			const prop = `--${key}`;
+			style.setProperty(prop, value);
+			this.appliedVarKeys.add(prop);
+		}
+	}
+
+	private clearAppliedVariables(): void {
+		const style = document.body.style;
+		for (const prop of this.appliedVarKeys) {
+			style.removeProperty(prop);
+		}
+		this.appliedVarKeys.clear();
 	}
 
 	setConfig(settings: ParsedCSSSettings[]) {

@@ -4,6 +4,15 @@
 
 ---
 
+## 1.0.1 (2026-09-02)
+
+### 修复
+
+- **通过 Obsidian 社区插件审核** — 移除运行时创建的 `<style>` 元素(审核明确禁止,报错定位在 `src/SettingsManager.ts`)。CSS 变量改为直接写入 `body` 内联样式:明暗主题变量通过 `MutationObserver` 监听 `body` class 变化,在主题切换时自动重新应用;卸载时清除全部应用过的变量。
+- **取色器终于有主题样式** — Pickr nano 主题 CSS 此前只被 esbuild 打进 `main.css`,而 Obsidian 只加载 `styles.css`,发布包里取色器实际未带样式;现纳入 `styles.css` 生产构建(nano 主题与既有增强样式一并输出)。
+
+---
+
 ## 1.0.0 (2026-09-01)
 
 首个公开发布版本。基于上游 Style Settings `1.0.8`(提交 `f26cfa0`)。

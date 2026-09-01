@@ -46,7 +46,9 @@ if (prod) {
 	await context.rebuild();
 	// Aggregate plugin CSS into the distribution stylesheet:
 	// import order defines the cascade, so keep it authoritative.
-	const cssFiles = ["pickerOverrides", "settings", "beautify"];
+	// pickr-nano comes last so the picker theme bases on top of the
+	// plugin's own overrides, matching the previous bundle order.
+	const cssFiles = ["pickerOverrides", "settings", "beautify", "pickr-nano"];
 	const css = cssFiles
 		.map((name) => readFileSync(`src/css/${name}.css`, "utf8"))
 		.join("\n");

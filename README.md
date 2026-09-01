@@ -439,12 +439,18 @@ settings:
 */
 ```
 
-This will output the variables:
+This will apply the variables to the current theme:
 
 ```
-body.theme-light.css-settings-manager { --accent: #007AFF; } 
-body.theme-dark.css-settings-manager { --accent: #2DB253; }
+// light theme active
+--accent: #007AFF;
+// dark theme active
+--accent: #2DB253;
 ```
+
+The variables are set inline on `<body>` (`body` keeps the `css-settings-manager`
+class, so themes that scope overrides with `body.css-settings-manager` keep
+working), and the light/dark variants follow the active theme automatically.
 
 ### `variable-color` formatting options
 
