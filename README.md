@@ -1,14 +1,62 @@
-# Obsidian Style Tuner
+<div align="center">
 
-Fine-tune the look of your vault: this plugin allows snippet, theme, and plugin CSS files to define a set of configuration options, then shows all the tweakable settings in one settings pane. Style Tuner supports toggling classes on and off the `body` element, as well as setting numeric, string, and color CSS variables.
+# Style Tuner
 
-**[This CSS Snippet](obsidian-default-theme.css) can be used to adjust every CSS variable of the default Obsidian theme.**
+像调音台一样,精细调校你的 Obsidian 外观。
 
-> Style Tuner is an independently maintained fork of [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) by [mgmeyers](https://github.com/mgmeyers), licensed under GPL-3.0. All credit for the original design and implementation belongs to the upstream author; this fork exists so the plugin can continue evolving as **Style Tuner** under its own identity. It parses the same `/* @settings` blocks as the original, so existing themes and snippets work without changes — but it is a separate plugin and should not be enabled at the same time as Style Settings.
+[![GitHub Release](https://img.shields.io/github/v/release/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%2342b883)](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) [![License](https://img.shields.io/github/license/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&color=%2342b883)](LICENSE.md) [![Obsidian Min App](https://img.shields.io/badge/Obsidian-%3E%3D1.5.0-%234a7ec1?style=flat-square&logo=obsidian&logoColor=%234a7ec1)](https://obsidian.md) [![GitHub Stars](https://img.shields.io/github/stars/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%23e4b341)](https://github.com/Dyse-Sofqi/obsidian-style-tuner)
 
-Configurable settings are defined by comments within CSS files beginning with `/* @settings`. These comments must contain YAML with `name`, `id`, and `settings` properties. Style Tuner will scan for these comments in all CSS loaded by Obsidian from the `snippets`, `themes`, and `plugins` directories under your vault's configuration directory (`%yourVault%/.obsidian/`). Please see the [Obsidian Docs](https://help.obsidian.md/Home) for more information.
+</div>
 
-For example, adding this to a CSS snippet in your vault's snippets directory (`%yourVault%/.obsidian/snippets`):
+---
+
+> 🇬🇧 **English**: 简介与安装说明为中文,下方 `/* @settings` 参考文档为英文。
+
+📜 完整更新记录见 [CHANGELOG](CHANGELOG.md)。
+
+### 简介
+
+Style Tuner 是一款 Obsidian 插件,让主题、CSS 片段与插件 CSS 声明一组可配置项,并把这些可调设置集中在同一个设置面板里:支持在 `body` 上开关类名,以及设置数值、文本、颜色等 CSS 变量——无需手动改 CSS,主题调校所见即所得。
+
+Style Tuner 是 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings)(作者 [mgmeyers](https://github.com/mgmeyers))的独立维护分支,遵循 GPL-3.0 协议。原插件的设计与实现全部归功于上游作者;本分支以 **Style Tuner** 之名继续演进。它解析与原版完全相同的 `/* @settings` 配置块,现有主题与片段无需任何修改即可使用——但它是独立插件,**不要与 Style Settings 同时启用**。
+
+### 关键词
+
+- 主题变量调校 · CSS 片段可视化配置 · 颜色选择器(含亮/暗双模式) · 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · `@settings` 生态兼容
+- 界面美化(层级强调色条 · 树形缩进线 · 横向布局) · 已修改值高亮 · 按区块导出/导入 · 遗留数据备份 · 中英文界面 · 随 Obsidian 语言切换
+
+### 功能
+
+- **兼容生态** — 完整支持 `/* @settings` 配置块:标题层级、类开关、类下拉、文本/数值/滑块/下拉变量、单色与亮暗双色取色器、信息文本、颜色渐变,以及按语言后缀的多语言标题(`title.zh`、`title.de` 等)。
+- **界面美化** — 可折叠标题按层级着色、树形缩进线呈现嵌套关系、设置项横向布局、设置页自动加宽,深浅色主题自适应。
+- **已自定义值高亮** — 改过默认值的设置行实时亮起标记,重置后立即熄灭。
+- **导出/导入增强** — 「全部设置」导出时可按一级区块勾选,只导出所选区块及其后代;来源已停用但留有自定义数据的区块也会列出,方便备份与迁移。
+- **稳定性** — 修复后台标签页恢复后的启动崩溃,懒挂载视图自动补齐数据。
+
+### 安装
+
+#### 1. 通过 BRAT(Beta Reviewer's Auto-update Tool)
+
+1. 安装并启用 [BRAT](https://github.com/TfTHacker/obsidian42-brat) 插件。
+2. 执行命令 `BRAT: Add a beta plugin for testing`。
+3. 输入 `Dyse-Sofqi/obsidian-style-tuner` 并确认。
+
+#### 2. 手动安装
+
+1. 从本仓库的最新 [Release](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) 下载 `main.js`、`manifest.json`、`styles.css`。
+2. 在 `<vault>/.obsidian/plugins/obsidian-style-tuner/` 目录下放入这三个文件。
+3. 在 Obsidian 的「第三方插件」设置中启用 **Style Tuner**。
+
+> [!CAUTION]
+> 不要同时启用 Style Tuner 与 Style Settings:两者都会渲染 `/* @settings` 配置面板,同一变量被写入两次可能产生冲突。
+
+### 数据存储
+
+你的全部调校值保存在 `<vault>/.obsidian/plugins/obsidian-style-tuner/data.json`,只存储与默认值不同的覆盖项。**卸载插件会删除该文件**(主题与片段文件本身不受影响)——卸载前请用设置面板的导出功能备份,或直接复制 `data.json`。
+
+### 供作者使用:`/* @settings` 参考文档(英文)
+
+在 vault 的 snippets 目录(`%yourVault%/.obsidian/snippets`)中的 CSS 片段加入如下注释:
 
 ```css
 /* @settings
@@ -27,36 +75,15 @@ settings:
         type: variable-color
         format: hsl-split
         default: '#007AFF'
-    - 
-        id: text
-        title: UI font
-        description: Font used for the user interface
-        type: variable-text
-        default: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif
 
 */
 ```
 
-will result in:
+将得到:
 
 <img src="https://raw.githubusercontent.com/Dyse-Sofqi/obsidian-style-tuner/main/screenshots/example01.png" alt="Example output of plugin" />
 
-## Installation
-
-### 1. Via BRAT (Beta Reviewer's Auto-update Tool)
-
-1. Install and enable the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
-2. Run the command `BRAT: Add a beta plugin for testing`.
-3. Enter `Dyse-Sofqi/obsidian-style-tuner` and confirm.
-
-### 2. Manual Installation
-
-1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release of this repository.
-2. Create the folder `<vault>/.obsidian/plugins/obsidian-style-tuner/` and copy the three files into it.
-3. Enable **Style Tuner** in Obsidian's community plugins settings.
-
-> [!CAUTION]
-> Do not enable Style Tuner and Style Settings at the same time. They both render `/* @settings` configuration panes and applying the same variables twice can produce conflicting results.
+---
 
 Each setting definition must be separated by a dash (`-`). There are 7 setting types.
 
@@ -227,15 +254,14 @@ settings:
         title: Bullet Icon
         description: Text used in bullet points
         type: variable-text
-        default: •
-        quotes: true
+        default: 鈥?        quotes: true
 */
 ```
 
 This will output the variable:
 
 ```
---icon: '•'
+--icon: '鈥?
 ```
 
 ## `variable-number`
@@ -574,29 +600,26 @@ Translations for titles and descriptions can be supplied for each language Obsid
 
 ```
 en: English
-zh: 简体中文
-zh-TW: 繁體中文
-ru: Pусский
-ko: 한국어
-it: Italiano
+zh: 绠€浣撲腑鏂?zh-TW: 绻侀珨涓枃
+ru: P褍褋褋泻懈泄
+ko: 頃滉淡鞏?it: Italiano
 id: Bahasa Indonesia
-ro: Română
+ro: Rom芒n膬
 pt-BR: Portugues do Brasil
-cz: čeština
+cz: 膷e拧tina
 de: Deutsch
-es: Español
-fr: Français
+es: Espa帽ol
+fr: Fran莽ais
 no: Norsk
-pl: język polski
-pt: Português
-ja: 日本語
-da: Dansk
-uk: Український
+pl: j臋zyk polski
+pt: Portugu锚s
+ja: 鏃ユ湰瑾?da: Dansk
+uk: 校泻褉邪褩薪褋褜泻懈泄
 sq: Shqip
-tr: Türkçe (kısmi)
-hi: हिन्दी (आंशिक)
+tr: T眉rk莽e (k谋smi)
+hi: 啶灌た啶ㄠ啶︵ (啶嗋啶多た啶?
 nl: Nederlands (gedeeltelijk)
-ar: العربية (جزئي)
+ar: 丕賱毓乇亘賷丞 (噩夭卅賷)
 ```
 
 For example:
@@ -611,10 +634,10 @@ settings:
         id: my-css-class
         title: My Toggle
         title.de: Mein Toggle
-        title.ko: 내 토글
+        title.ko: 雮?韱犼竴
         description: Adds my-css-class to the body element
-        description.de: Fügt my-css-class zum body-Element hinzu
-        description.ko: my-css-class를 body 요소에 추가합니다.
+        description.de: F眉gt my-css-class zum body-Element hinzu
+        description.ko: my-css-class毳?body 鞖旍唽鞐?於旉皜頃╇媹雼?
         type: class-toggle
 
 */

@@ -2,7 +2,7 @@
 	"id": "obsidian-style-tuner",
 	"name": "Style Tuner",
 	"version": "1.0.0",
-	"minAppVersion": "0.11.5",
+	"minAppVersion": "1.5.0",
 	"description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls.",
 	"author": "Sofqi",
 	"authorUrl": "https://github.com/Dyse-Sofqi",

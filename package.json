@@ -12,8 +12,7 @@
     "lint:fix": "eslint ./src/**/*.ts --fix",
     "prettier": "prettier --write \"./src/**/*.{ts,tsx}\"",
     "clean": "yarn prettier && yarn lint:fix",
-    "rlnotes": "git log $(git describe --tags --abbrev=0)..HEAD --oneline > release-notes.md && git add release-notes.md",
-    "bump": "node version-bump.mjs && git add manifest.json versions.json && yarn rlnotes",
+    "bump": "node version-bump.mjs && git add manifest.json versions.json package.json",
     "release": "git commit -m $npm_package_version && git tag $npm_package_version && git push && git push --tags"
   },
   "keywords": [],

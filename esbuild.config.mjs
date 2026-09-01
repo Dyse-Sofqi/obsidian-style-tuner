@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import { readFileSync, writeFileSync } from "fs";
 
 const banner =
 `/*
@@ -43,6 +44,13 @@ const context = await esbuild.context({
 
 if (prod) {
 	await context.rebuild();
+	// Aggregate plugin CSS into the distribution stylesheet:
+	// import order defines the cascade, so keep it authoritative.
+	const cssFiles = ["pickerOverrides", "settings", "beautify"];
+	const css = cssFiles
+		.map((name) => readFileSync(`src/css/${name}.css`, "utf8"))
+		.join("\n");
+	writeFileSync("styles.css", css);
 	process.exit(0);
 } else {
 	await context.watch();

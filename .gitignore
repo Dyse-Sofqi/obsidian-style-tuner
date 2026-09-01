@@ -7,9 +7,11 @@ package-lock.json
 
 # build
 main.js
+main.css
 data.json
 .DS_Store
 *.js.map
 .env
 
 .hotreload
+release-notes.md
