@@ -18,6 +18,7 @@ import {
 import CSSSettingsPlugin from './main';
 import { SettingType } from './settingsView/SettingComponents/types';
 import { isValidSavedColor } from './Utils';
+import { ExportSectionOption } from './ExportModal';
 import chroma from 'chroma-js';
 
 type VariableKV = Array<{ key: string; value: string }>;
@@ -631,7 +632,7 @@ export class CSSSettingsManager {
 	export(
 		section: string,
 		config: Record<string, SettingValue>,
-		sections?: { id: string; name: string }[]
+		sections?: ExportSectionOption[]
 	) {
 		new ExportModal(this.plugin.app, this.plugin, section, config, sections ?? null).open();
 	}

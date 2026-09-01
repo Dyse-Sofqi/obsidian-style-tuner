@@ -60,7 +60,7 @@ export class SettingsMarkup extends Component {
 		}
 
 		const parsedIds = new Set(this.settings.map((s) => s.id));
-		const sections = this.settings.map((s) => ({
+		const sections: ExportSectionOption[] = this.settings.map((s) => ({
 			id: s.id,
 			name: s.name,
 			count: counts[s.id] ?? 0,

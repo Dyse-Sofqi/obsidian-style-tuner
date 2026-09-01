@@ -8,6 +8,10 @@ export interface ExportSectionOption {
 	id: string;
 	/** Display name shown in the checkbox list. */
 	name: string;
+	/** True when the section only exists as stored data (its source is disabled). */
+	orphaned?: boolean;
+	/** Number of stored keys in this section. */
+	count?: number;
 }
 
 export class ExportModal extends Modal {
