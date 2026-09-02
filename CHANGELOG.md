@@ -4,6 +4,24 @@
 
 ---
 
+## 1.4.1 (2026-09-03)
+
+### 新增功能
+
+- **外观设置接入视图** — Style Tuner 独立视图中新增 Obsidian 默认外观设置接口:页面头部提供「颜色模式」(跟随系统 / 亮色 / 深色)与「主题」下拉(默认主题 + 全部已安装主题);原有样式设置内容归入第一个标签页「样式设置」,新增第二个标签页「CSS 片段」,可启用 / 停用库中的 CSS 片段并刷新列表。主题、片段在别处被修改(如 Obsidian 外观设置)后,视图通过 `css-change` 事件自动同步。
+- **顶栏布局调整** — 「颜色模式 / 主题」下拉从视图顶部独立行移入「样式设置」顶栏,排在搜索框之后、导入导出按钮之前(插件设置标签页同步生效);导入 / 导出由文本链接改为 Obsidian 原生图标按钮(`clickable-icon`,上传 / 下载图标,带 `aria-label`)。
+- **工具栏脱离页面内容** — 搜索框、外观控件(颜色模式 / 主题)与导入导出按钮组成视图级工具栏,整体上移至标签栏上方(与标签页同级、常驻显示,切换「CSS 片段」标签页不消失;无样式设置时的空状态也保留工具栏);插件设置标签页保持原位置。
+
+### 修复
+
+- **CSS 片段列表检索失败** — `src/AppearanceManager.ts` 曾按 `!f.includes('/')` 过滤 `vault.adapter.list()` 的返回值,而 Obsidian 的 `FileSystemAdapter.list` 返回的路径带 `.obsidian/snippets/` 前缀(必然含 `/`),导致全部顶层片段被误过滤、列表恒为空。现与官方 `CustomCss.readSnippets` 语义对齐:取 basename → 丢弃以点开头的隐藏文件 → 保留 `.css`(大小写不敏感)→ 按最后一个小数点截断扩展名。
+- **片段启停后头部下拉重复加载** — 启用 / 停用片段会触发 `css-change` 事件进而调用 `refreshAppearanceControls`,而该方法每次都在头部容器直接追加新的「颜色模式 / 主题」下拉;现重建前先清空旧控件(`headerControlsEl.empty()`)。
+- **片段启停改走官方 API** — 此前回退分支检查不存在的 `customCss.addSnippet/removeSnippet`;现优先使用 `customCss.setCssEnabledStatus(name, enabled)`(官方唯一入口:更新 `enabledSnippets` + `vault.setConfig` + 重载),缺失时再回退维护 appearance.json。
+- **外观状态读运行时配置** — `getThemeMode`/`getCurrentTheme`/`getEnabledSnippets` 优先读 `vault.getConfig(...)`(与官方 `CustomCss.loadData` 同源、无磁盘写入延迟),回退 appearance.json;去除不存在的 `app.getTheme` 兜底(改按 `body.theme-dark` 推断);`setTheme('')` 与官方一致用空字符串而非 null 表示默认主题。
+- **工具栏搜索框聚焦包边** — 光标进入搜索框时,Obsidian 原生 `input[type=search]:focus-visible` 会在输入框外叠一圈 2px 灰色实心方环(与 1px 边框同色,视觉上像一圈 3px 的粗包边),且环的普通圆角与 `corner-shape: superellipse` 绘制的边框形状错位,在紧凑工具栏中尤其突兀。现按用户偏好让工具栏搜索框聚焦时完全保持原样(无焦点环、无边框变色、无阴影),聚焦状态仍由光标体现;
+
+---
+
 ## 1.0.1 (2026-09-02)
 
 ### 修复

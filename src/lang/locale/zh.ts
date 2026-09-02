@@ -28,6 +28,9 @@ export const zh = {
 	// Export modal
 	'Export settings for:': '导出设置：',
 	'Copy to clipboard': '复制到剪贴板',
+	'Copied to clipboard': '已复制到剪贴板',
+	'Copy to clipboard failed':
+		'复制失败，已选中内容，请按 Ctrl+C 手动复制',
 	'Download': '下载',
 
 	// Import modal
@@ -60,4 +63,20 @@ export const zh = {
 
 	// Commands
 	'Show Style Tuner view': '打开 Style Tuner 视图',
+
+	// Appearance (color mode / theme / CSS snippets)
+	'Style Settings': '样式设置',
+	'CSS Snippets': 'CSS 片段',
+	'Color mode': '颜色模式',
+	'Theme': '主题',
+	'Default theme': '默认主题',
+	'System': '跟随系统',
+	'Light': '亮色',
+	'Dark': '深色',
+	'{{count}} CSS snippets': '{{count}} 个 CSS 片段',
+	'No CSS snippets found': '未找到 CSS 片段',
+	'Add CSS files to the snippets folder of your vault to manage them here. ':
+		'在库的 snippets 文件夹中添加 CSS 文件，即可在此启停管理。 ',
+	'Refresh': '刷新',
+	'Failed to change appearance': '外观设置更改失败',
 };

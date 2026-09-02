@@ -370,3 +370,113 @@
     min-width: 100%;
   }
 }
+
+/* ============================================================
+   5. Appearance controls & tab navigation (standalone view)
+   —— Header dropdowns (color mode / CSS theme), the tab bar for
+      "Style Settings" / "CSS Snippets", and the snippet list.
+   ============================================================ */
+
+.style-settings-view {
+  padding: 8px 12px 24px;
+}
+
+/* ---- View-level toolbar row (above the tab bar) ---- */
+
+.style-settings-toolbar {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* ---- Toolbar row: appearance dropdowns between search and import/export ---- */
+
+.style-settings-appearance-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.style-settings-appearance-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.style-settings-appearance-label {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+}
+
+/* ---- Tab bar ---- */
+
+.style-settings-nav {
+  display: flex;
+  gap: 2px;
+  margin: 14px 0 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.style-settings-nav-item {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 8px 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--font-ui-medium);
+}
+
+.style-settings-nav-item:hover {
+  color: var(--text-normal);
+}
+
+.style-settings-nav-item.is-active {
+  color: var(--text-normal);
+  border-bottom-color: var(--interactive-accent);
+}
+
+/* ---- Tab content ---- */
+
+.style-settings-tab {
+  display: none;
+}
+
+.style-settings-tab.is-active {
+  display: block;
+}
+
+/* ---- CSS snippets tab ---- */
+
+.style-settings-tab[data-tab="snippets"] .setting-item {
+  flex-direction: row;
+  align-items: center;
+}
+
+.style-settings-tab[data-tab="snippets"] .setting-item-name {
+  word-break: break-all;
+}
+
+/* ============================================================
+   6. Toolbar search box: neutral focus
+   —— Obsidian's default input[type=search] paints a 2px hard grey
+      box-shadow ring on :focus-visible (mouse clicks included) plus
+      a border recolour on :focus; in the compact toolbar row that
+      reads as a stray "outline" band. The search box keeps no focus
+      effect at all: border, background and shadow stay unchanged
+      while focused (focus state is still announced via the caret).
+   ============================================================ */
+
+.style-settings-toolbar .search-input-container {
+  /* match the input's own corner-shape so border shapes line up */
+  corner-shape: var(--input-corner-shape);
+}
+
+.style-settings-toolbar .search-input-container input[type='search']:focus,
+.style-settings-toolbar .search-input-container input[type='search']:focus-visible {
+  border-color: var(--background-modifier-border);
+  box-shadow: none;
+}

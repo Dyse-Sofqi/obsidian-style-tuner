@@ -253,11 +253,7 @@
     color: var(--text-accent-hover);
 }
 
-.style-settings-export,
-.style-settings-import {
-    display: inline-block;
-    margin-right: 10px;
-}
+/* 导入 / 导出：Obsidian 原生图标按钮（clickable-icon），无需额外链接样式 */
 
 .style-settings-copy,
 .style-settings-download {

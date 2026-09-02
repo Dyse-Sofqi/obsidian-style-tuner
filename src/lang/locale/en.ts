@@ -29,6 +29,9 @@ export const en = {
 	// Export modal
 	'Export settings for:': 'Export settings for:',
 	'Copy to clipboard': 'Copy to clipboard',
+	'Copied to clipboard': 'Copied to clipboard',
+	'Copy to clipboard failed':
+		'Copy failed, text selected — press Ctrl+C to copy manually',
 	'Download': 'Download',
 
 	// Import modal
@@ -61,4 +64,20 @@ export const en = {
 
 	// Commands
 	'Show Style Tuner view': 'Show Style Tuner view',
+
+	// Appearance (color mode / theme / CSS snippets)
+	'Style Settings': 'Style Settings',
+	'CSS Snippets': 'CSS Snippets',
+	'Color mode': 'Color mode',
+	'Theme': 'Theme',
+	'Default theme': 'Default theme',
+	'System': 'System',
+	'Light': 'Light',
+	'Dark': 'Dark',
+	'{{count}} CSS snippets': '{{count}} CSS snippets',
+	'No CSS snippets found': 'No CSS snippets found',
+	'Add CSS files to the snippets folder of your vault to manage them here. ':
+		'Add CSS files to the snippets folder of your vault to manage them here. ',
+	'Refresh': 'Refresh',
+	'Failed to change appearance': 'Failed to change appearance',
 };

@@ -22,10 +22,12 @@ import { SettingsView, viewType } from './settingsView/SettingsView';
 import '@simonwep/pickr/dist/themes/nano.min.css';
 import detectIndent from 'detect-indent';
 import yaml from 'js-yaml';
+import { AppearanceManager } from './AppearanceManager';
 import { Command, Plugin } from 'obsidian';
 
 export default class CSSSettingsPlugin extends Plugin {
 	settingsManager: CSSSettingsManager;
+	appearanceManager: AppearanceManager;
 	settingsTab: CSSSettingsTab;
 	settingsList: ParsedCSSSettings[] = [];
 	errorList: ErrorList = [];
@@ -35,6 +37,7 @@ export default class CSSSettingsPlugin extends Plugin {
 
 	async onload() {
 		this.settingsManager = new CSSSettingsManager(this);
+		this.appearanceManager = new AppearanceManager(this.app);
 
 		await this.settingsManager.load();
 
