@@ -1,6 +1,6 @@
 {
   "name": "style-tuner",
-  "version": "1.4.1",
+  "version": "1.0.2",
   "description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls.",
   "main": "main.js",
   "scripts": {
