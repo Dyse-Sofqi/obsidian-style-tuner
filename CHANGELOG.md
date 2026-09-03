@@ -4,6 +4,15 @@
 
 ---
 
+## 1.0.3 (2026-09-04)
+
+### 修复
+
+- **应用样式后编辑器行高表未刷新（点击错行）** — 本插件把 CSS 变量直接写入 `<body>` 内联样式（社区插件审核禁止动态 `<style>` 元素），而 body 内联样式变更不会触发 CM6 重新测量：若编辑器创建后变量才被应用（重启时首轮 `parseCSS` 的 100ms 防抖、明暗主题切换、设置变更、CSS 片段触发 `css-change` 重新解析等），行高表保持陈旧，`posAtCoords` 会把点击位置映射到错误的行——典型症状为「点击光标所在行的上一行下半部分，光标无法跳到上一行」，且重启后高频复现（如 `--line-height-main` 这类行高变量会被主题作用于 `.markdown-source-view.mod-cm6 .cm-scroller`）。现在每次把变量/类名应用到 `<body>` 后（`applyVariables`/`clearAppliedVariables`/`initClasses`/`removeClasses` 四处），通过 `EditorView.findFromDOM` 对全部打开的 Markdown 编辑器调用 `requestMeasure()`（50ms 防抖合并批量突变），无论应用与编辑器首次测量的先后顺序如何，都会在应用后立即刷新行高表。
+- 新增 `@codemirror/view` 开发依赖（仅类型用途；esbuild 已标记 external，运行时经 Obsidian 解析，不增大插件包体）。
+
+---
+
 ## 1.0.2 (2026-09-03)
 
 ### 新增功能

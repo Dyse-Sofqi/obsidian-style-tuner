@@ -17,7 +17,7 @@ import {
 } from './SettingHandlers';
 import CSSSettingsPlugin from './main';
 import { SettingType } from './settingsView/SettingComponents/types';
-import { isValidSavedColor } from './Utils';
+import { isValidSavedColor, scheduleEditorRemeasure } from './Utils';
 import { ExportSectionOption } from './ExportModal';
 import chroma from 'chroma-js';
 
@@ -495,6 +495,7 @@ export class CSSSettingsManager {
 				}
 			});
 		});
+		scheduleEditorRemeasure(this.plugin.app);
 	}
 
 	removeClasses() {
@@ -520,6 +521,7 @@ export class CSSSettingsManager {
 				}
 			});
 		});
+		scheduleEditorRemeasure(this.plugin.app);
 	}
 
 	setCSSVariables() {
@@ -552,6 +554,7 @@ export class CSSSettingsManager {
 			style.setProperty(prop, value);
 			this.appliedVarKeys.add(prop);
 		}
+		scheduleEditorRemeasure(this.plugin.app);
 	}
 
 	private clearAppliedVariables(): void {
@@ -560,6 +563,7 @@ export class CSSSettingsManager {
 			style.removeProperty(prop);
 		}
 		this.appliedVarKeys.clear();
+		scheduleEditorRemeasure(this.plugin.app);
 	}
 
 	setConfig(settings: ParsedCSSSettings[]) {
