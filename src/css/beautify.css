@@ -504,7 +504,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s, 4px);
   padding: 0 5px;
-  cursor: copy;
+  cursor: default;
   /* 复制由程序完成，点击不产生文本选中效果 */
   user-select: none;
   -webkit-user-select: none;
