@@ -192,8 +192,7 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
 	const hiddenTextarea = document.createElement('textarea');
 	hiddenTextarea.value = text;
 	hiddenTextarea.setAttribute('readonly', '');
-	hiddenTextarea.style.position = 'fixed';
-	hiddenTextarea.style.top = '-9999px';
+	hiddenTextarea.addClass('style-settings-clipboard-helper');
 	document.body.appendChild(hiddenTextarea);
 	try {
 		hiddenTextarea.select();

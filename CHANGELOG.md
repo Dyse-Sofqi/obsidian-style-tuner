@@ -4,6 +4,13 @@
 
 ---
 
+## 1.0.5 (2026-09-12)
+
+### 修复
+
+- **通过 Obsidian 社区插件审核（复审）** — 剪贴板回退用的隐藏 textarea 不再直接给元素内联样式赋值（`obsidianmd/no-static-styles-assignment`），改为附加离屏定位的 CSS 类 `style-settings-clipboard-helper`（`position: fixed; top: -9999px; opacity: 0`）；同时清理变量名复制 chip 中未使用的变量。
+
+---
 ## 1.0.4 (2026-09-12)
 
 ### 新增功能

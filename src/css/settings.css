@@ -345,3 +345,11 @@
 .style-settings-info-text .style-settings-markdown :last-child {
     margin-bottom: 0;
 }
+/* 剪贴板回退：Clipboard API 不可用 / 被拒时，用于 execCommand('copy')
+   的隐藏文本域（离屏定位，避免出现滚动条或可见闪烁） */
+.style-settings-clipboard-helper {
+	position: fixed;
+	top: -9999px;
+	left: 0;
+	opacity: 0;
+}

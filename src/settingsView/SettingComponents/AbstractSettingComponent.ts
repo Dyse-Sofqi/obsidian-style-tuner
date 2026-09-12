@@ -113,7 +113,7 @@ export abstract class AbstractSettingComponent extends Component {
 
 		const varName = `--${this.setting.id}`;
 		const chip = createSpan({ cls: 'style-settings-var-copy' });
-		const code = chip.createEl('code', { text: varName });
+		chip.createEl('code', { text: varName });
 		chip.title = t('Copy to clipboard');
 
 		chip.addEventListener('click', (e) => {
