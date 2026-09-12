@@ -1,7 +1,8 @@
 import { SettingValue } from './SettingsManager';
 import CSSSettingsPlugin from './main';
 import { t } from './lang/helpers';
-import { App, Modal, Setting, TextAreaComponent } from 'obsidian';
+import { copyTextToClipboard } from './Utils';
+import { App, Modal, Notice, Setting, TextAreaComponent } from 'obsidian';
 
 export interface ExportSectionOption {
 	/** Section id (data key prefix, e.g. `theme-blue-topaz`). */
@@ -69,6 +70,7 @@ export class ExportModal extends Modal {
 		}
 	}
 
+
 	onOpen() {
 		const { contentEl, modalEl } = this;
 
@@ -96,19 +98,28 @@ export class ExportModal extends Modal {
 								copyButton.addEventListener('click', (e) => {
 									e.preventDefault();
 
-									// Select the textarea contents and copy them to the clipboard
-									textarea.inputEl.select();
-									textarea.inputEl.setSelectionRange(0, 99999);
-									document.execCommand('copy');
+									copyTextToClipboard(textarea.inputEl.value)
+										.then((success) => {
+											if (success) {
+												new Notice(t('Copied to clipboard'));
+											} else {
+												new Notice(t('Copy to clipboard failed'));
+												// Last resort: leave the text selected so the
+												// user can copy it manually with Ctrl+C.
+												textarea.inputEl.focus();
+												textarea.inputEl.select();
+											}
+										})
+										.finally(() => {
+											copyButton.addClass('success');
 
-									copyButton.addClass('success');
-
-									setTimeout(() => {
-										// If the button is still in the dom, remove the success class
-										if (copyButton.parentNode) {
-											copyButton.removeClass('success');
-										}
-									}, 2000);
+											setTimeout(() => {
+												// If the button is still in the dom, remove the success class
+												if (copyButton.parentNode) {
+													copyButton.removeClass('success');
+												}
+											}, 2000);
+										});
 								});
 							});
 					}

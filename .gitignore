@@ -15,3 +15,6 @@ data.json
 
 .hotreload
 release-notes.md
+
+# 系统盘残留目录（Windows 缓存工件，勿提交）
+%SystemDrive%/

@@ -480,3 +480,37 @@
   border-color: var(--background-modifier-border);
   box-shadow: none;
 }
+
+/* ============================================================
+   Variable-name copy chip
+   —— Renders each variable setting's CSS variable name as a
+      monospace <code> chip after its title; single click copies
+      `--<id>` (independent of the localized / ◉ title text).
+   ============================================================ */
+.style-settings-var-copy {
+  display: inline-block;
+  margin-inline-start: 8px;
+  vertical-align: middle;
+  /* 行内块自包含：给内部 code 自己的行高，避免底部边框被外层行距截断 */
+  line-height: 0;
+}
+.style-settings-var-copy code {
+  display: inline-block;
+  font-family: var(--font-monospace);
+  font-size: 0.8em;
+  line-height: 1.6;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  padding: 0 5px;
+  cursor: copy;
+  /* 复制由程序完成，点击不产生文本选中效果 */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.style-settings-var-copy:hover code {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+  border-color: var(--background-modifier-border-hover);
+}

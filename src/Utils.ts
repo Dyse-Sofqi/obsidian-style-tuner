@@ -172,3 +172,37 @@ export function scheduleEditorRemeasure(app: App): void {
 		}
 	}, REMEASURE_DEBOUNCE_MS);
 }
+/**
+ * Copies text to the clipboard, preferring the async Clipboard API and
+ * falling back to a hidden-textarea execCommand hack. Returns whether the
+ * copy actually succeeded. Shared by the export modal and the per-setting
+ * variable-name copy chip.
+ */
+export async function copyTextToClipboard(text: string): Promise<boolean> {
+	try {
+		if (navigator.clipboard?.writeText) {
+			await navigator.clipboard.writeText(text);
+			return true;
+		}
+	} catch (e) {
+		console.error('Style Tuner: Clipboard API copy failed', e);
+	}
+
+	// Fallback for when the Clipboard API is unavailable or denied.
+	const hiddenTextarea = document.createElement('textarea');
+	hiddenTextarea.value = text;
+	hiddenTextarea.setAttribute('readonly', '');
+	hiddenTextarea.style.position = 'fixed';
+	hiddenTextarea.style.top = '-9999px';
+	document.body.appendChild(hiddenTextarea);
+	try {
+		hiddenTextarea.select();
+		hiddenTextarea.setSelectionRange(0, text.length);
+		return document.execCommand('copy');
+	} catch (e) {
+		console.error('Style Tuner: execCommand copy failed', e);
+		return false;
+	} finally {
+		hiddenTextarea.remove();
+	}
+}

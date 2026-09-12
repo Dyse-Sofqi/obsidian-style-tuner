@@ -10,28 +10,40 @@
 
 ---
 
-> 🇬🇧 **English**: 简介与安装说明为中文,下方 `/* @settings` 参考文档为英文。
+> 中文为主文档语言，关键章节附英文对照；`/* @settings` 参考文档见文末（英文）。
+> Chinese is the primary language, with English alongside in key sections; the `/* @settings` reference is at the bottom of this document.
 
-📜 完整更新记录见 [CHANGELOG](CHANGELOG.md)。
+📜 完整更新记录见 [CHANGELOG](CHANGELOG.md) · Full changelog: [CHANGELOG](CHANGELOG.md)
 
-### 简介
+### 关键词 / Keywords
 
-Style Tuner 是一款 Obsidian 插件,让主题、CSS 片段与插件 CSS 声明一组可配置项,并把这些可调设置集中在同一个设置面板里:支持在 `body` 上开关类名,以及设置数值、文本、颜色等 CSS 变量——无需手动改 CSS,主题调校所见即所得。
+**中文**：主题变量调校 · CSS 片段可视化配置 · 颜色选择器（亮/暗双模式）· 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · 变量名一键复制 · `@settings` 生态兼容 · 界面美化 · 已修改值高亮 · 按区块导出 / 导入 · 中英文界面
 
-Style Tuner 是 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings)(作者 [mgmeyers](https://github.com/mgmeyers))的独立维护分支,遵循 GPL-3.0 协议。原插件的设计与实现全部归功于上游作者;本分支以 **Style Tuner** 之名继续演进。它解析与原版完全相同的 `/* @settings` 配置块,现有主题与片段无需任何修改即可使用——但它是独立插件,**不要与 Style Settings 同时启用**。
+**English**: theme variable fine-tuning · visual CSS snippet configuration · dual-mode color pickers (light/dark) · number sliders · dropdown selects · class toggles · collapsible heading groups · search filter · one-click variable-name copy · `@settings` ecosystem compatibility · beautified UI · modified-value highlighting · per-section export/import · bilingual UI
 
-### 关键词
+### 简介 / Introduction
 
-- 主题变量调校 · CSS 片段可视化配置 · 颜色选择器(含亮/暗双模式) · 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · `@settings` 生态兼容
-- 界面美化(层级强调色条 · 树形缩进线 · 横向布局) · 已修改值高亮 · 按区块导出/导入 · 遗留数据备份 · 中英文界面 · 随 Obsidian 语言切换
+**中文**：Style Tuner 是一款 Obsidian 插件，让主题、CSS 片段与插件 CSS 声明一组可配置项，并把这些可调设置集中在同一个设置面板里：支持在 `body` 上开关类名，以及设置数值、文本、颜色等 CSS 变量——无需手动改 CSS，主题调校所见即所得。它是 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings)（作者 [mgmeyers](https://github.com/mgmeyers)）的独立维护分支，遵循 GPL-3.0 协议，解析与原版完全相同的 `/* @settings` 配置块，现有主题与片段无需任何修改即可使用。**它是独立插件，不要与 Style Settings 同时启用。**
 
-### 功能
+**English**: Style Tuner is an Obsidian plugin that lets themes, CSS snippets, and plugin CSS declare a set of configurable options, and collects them into a single settings panel: toggle classes on `body`, and set numeric, text, or color CSS variables — no hand-editing CSS, WYSIWYG theme tuning. It is an independently maintained fork of [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) by [mgmeyers](https://github.com/mgmeyers), licensed under GPL-3.0. It parses the exact same `/* @settings` blocks, so existing themes and snippets work unchanged. **It is a separate plugin — do not enable it together with Style Settings.**
 
-- **兼容生态** — 完整支持 `/* @settings` 配置块:标题层级、类开关、类下拉、文本/数值/滑块/下拉变量、单色与亮暗双色取色器、信息文本、颜色渐变,以及按语言后缀的多语言标题(`title.zh`、`title.de` 等)。
-- **界面美化** — 可折叠标题按层级着色、树形缩进线呈现嵌套关系、设置项横向布局、设置页自动加宽,深浅色主题自适应。
-- **已自定义值高亮** — 改过默认值的设置行实时亮起标记,重置后立即熄灭。
-- **导出/导入增强** — 「全部设置」导出时可按一级区块勾选,只导出所选区块及其后代;来源已停用但留有自定义数据的区块也会列出,方便备份与迁移。
-- **稳定性** — 修复后台标签页恢复后的启动崩溃,懒挂载视图自动补齐数据。
+### 功能 / Features
+
+**中文**：
+- **生态兼容** — 完整支持 `/* @settings` 配置块：标题层级、类开关、类下拉、文本/数值/滑块/下拉变量、单色与亮暗双色取色器、信息文本、颜色渐变，以及按语言后缀的多语言标题（`title.zh`、`title.de` 等）。
+- **变量名一键复制** — 每个变量设置项标题旁显示等宽 `--变量名` chip，单击即复制到剪贴板（成功/失败均有通知）；变量名直接取设置项 id，不依赖本地化标题文本。
+- **界面美化** — 可折叠标题按层级着色、树形缩进线呈现嵌套关系、设置项横向布局、设置页自动加宽，深浅色主题自适应。
+- **已自定义值高亮** — 改过默认值的设置行实时亮起标记，重置后立即熄灭。
+- **导出/导入增强** — 「全部设置」导出时可按一级区块勾选，只导出所选区块及其后代；来源已停用但留有自定义数据的区块也会列出，方便备份与迁移。
+- **稳定性** — 修复后台标签页恢复后的启动崩溃，懒挂载视图自动补齐数据。
+
+**English**:
+- **Ecosystem compatible** — Full support for `/* @settings` blocks: heading levels, class toggles and selects, text/number/slider/select variables, single and light/dark themed color pickers, info text, color gradients, and language-suffixed titles (`title.zh`, `title.de`, …).
+- **One-click variable-name copy** — Each variable setting shows a monospace `--var` chip next to its title; a single click copies the variable name to the clipboard (with success/failure notices). The name is taken from the setting `id`, independent of the localized title.
+- **Beautified UI** — Collapsible headings with per-level accent bars and tree guide lines, horizontal setting rows, auto-widened panel; adapts to light/dark themes.
+- **Modified-value highlighting** — Rows whose saved values differ from defaults light up in real time and reset immediately clears the marker.
+- **Enhanced export/import** — Exports can be filtered by first-level sections; stalled-but-stored sections are also listed for backup and migration.
+- **Stability** — Fixes the startup crash after restoring a background tab and lazily hydrates the view.
 
 ### 安装
 

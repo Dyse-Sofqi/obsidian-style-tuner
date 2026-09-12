@@ -1,8 +1,9 @@
 import { CSSSetting } from '../../SettingHandlers';
 import { CSSSettingsManager } from '../../SettingsManager';
-import { getDescription, getTitle } from '../../Utils';
+import { getDescription, getTitle, copyTextToClipboard } from '../../Utils';
+import { t } from '../../lang/helpers';
 import fuzzysort from 'fuzzysort';
-import { Component, Setting } from 'obsidian';
+import { Component, Notice, Setting } from 'obsidian';
 import { SettingType } from './types';
 
 export abstract class AbstractSettingComponent extends Component {
@@ -41,6 +42,7 @@ export abstract class AbstractSettingComponent extends Component {
 
 	onload(): void {
 		this.render();
+		this.addCopyableVarName();
 		this.updateModifiedState();
 	}
 
@@ -83,6 +85,50 @@ export abstract class AbstractSettingComponent extends Component {
 			'is-modified',
 			this.isModified()
 		);
+	}
+
+
+	/**
+	 * 为变量类设置项在标题后追加一个等宽「变量名」chip（`--<id>`）：
+	 * 单击即复制该 CSS 变量名。直接取设置项 id 拼出 `--` 前缀，
+	 * 不依赖本地化标题/◉ 前缀文本，因此中文标题下同样可靠。
+	 */
+	private addCopyableVarName(): void {
+		const { type } = this.setting;
+		switch (type) {
+			case SettingType.VARIABLE_TEXT:
+			case SettingType.VARIABLE_NUMBER:
+			case SettingType.VARIABLE_NUMBER_SLIDER:
+			case SettingType.VARIABLE_SELECT:
+			case SettingType.VARIABLE_COLOR:
+			case SettingType.VARIABLE_THEMED_COLOR:
+				break;
+			default:
+				// heading / info-text / class-toggle 等不对应 CSS 变量
+				return;
+		}
+
+		const settingEl = this.settingEl;
+		if (!settingEl?.nameEl) return;
+
+		const varName = `--${this.setting.id}`;
+		const chip = createSpan({ cls: 'style-settings-var-copy' });
+		const code = chip.createEl('code', { text: varName });
+		chip.title = t('Copy to clipboard');
+
+		chip.addEventListener('click', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			copyTextToClipboard(varName).then((ok) => {
+				if (ok) {
+					new Notice(t('Copied to clipboard'));
+				} else {
+					new Notice(t('Copy to clipboard failed'));
+				}
+			});
+		});
+
+		settingEl.nameEl.appendChild(chip);
 	}
 
 	onunload(): void {
