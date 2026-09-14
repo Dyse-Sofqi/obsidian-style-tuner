@@ -237,10 +237,41 @@ export class AppearanceManager {
 	// CSS 片段
 	// ------------------------------------------------------------------
 
+	/** snippets 目录的库内路径（与官方 CustomCss 的目录一致） */
+	getSnippetsFolder(): string {
+		const cc = this.customCss;
+		if (cc && typeof cc.getSnippetsFolder === 'function') {
+			return cc.getSnippetsFolder();
+		}
+		return `${this.app.vault.configDir}/snippets`;
+	}
+
+	/**
+	 * 在系统文件管理器中打开 snippets 目录；目录不存在时先创建。
+	 * 与官方「外观 → CSS 片段」的打开文件夹按钮行为一致。
+	 * 仅桌面端可用：移动端没有可打开的文件管理器。
+	 */
+	async openSnippetsFolder(): Promise<void> {
+		const path = this.getSnippetsFolder();
+
+		if (!(await this.app.vault.adapter.exists(path))) {
+			await this.app.vault.createFolder(path);
+		}
+
+		// 运行时入口（官方打开主题 / 插件文件夹用的也是它），未入 typings
+		const openWithDefaultApp = (this.app as any).openWithDefaultApp;
+		if (typeof openWithDefaultApp === 'function') {
+			await openWithDefaultApp.call(this.app, path);
+			return;
+		}
+
+		throw new Error('This version of Obsidian cannot open folders');
+	}
+
 	/** 列出 snippets 目录中的全部片段与启停状态 */
 	async getSnippets(): Promise<SnippetInfo[]> {
 		const enabled = new Set(await this.getEnabledSnippets());
-		const dir = `${this.app.vault.configDir}/snippets`;
+		const dir = this.getSnippetsFolder();
 
 		let names: string[] = [];
 		try {

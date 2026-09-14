@@ -79,5 +79,7 @@ export const en = {
 	'Add CSS files to the snippets folder of your vault to manage them here. ':
 		'Add CSS files to the snippets folder of your vault to manage them here. ',
 	'Refresh': 'Refresh',
+	'Open snippets folder': 'Open snippets folder',
+	'Failed to open the snippets folder': 'Failed to open the snippets folder',
 	'Failed to change appearance': 'Failed to change appearance',
 };

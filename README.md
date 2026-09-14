@@ -17,54 +17,67 @@
 
 ### 关键词 / Keywords
 
-**中文**：主题变量调校 · CSS 片段可视化配置 · 颜色选择器（亮/暗双模式）· 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · 变量名一键复制 · `@settings` 生态兼容 · 界面美化 · 已修改值高亮 · 按区块导出 / 导入 · 中英文界面
+**中文**：主题变量调校 · CSS 片段可视化配置 · 独立标签页视图 · 外观面板（颜色模式 / 主题切换）· CSS 片段启停管理 · 打开片段文件夹 · 颜色选择器（亮/暗双模式）· 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · 变量名一键复制 · `@settings` 生态兼容 · 界面美化 · 已修改值高亮 · 按区块导出 / 导入 · 24 种界面语言
 
-**English**: theme variable fine-tuning · visual CSS snippet configuration · dual-mode color pickers (light/dark) · number sliders · dropdown selects · class toggles · collapsible heading groups · search filter · one-click variable-name copy · `@settings` ecosystem compatibility · beautified UI · modified-value highlighting · per-section export/import · bilingual UI
+**English**: theme variable fine-tuning · visual CSS snippet configuration · standalone tabbed view · appearance panel (color mode / theme switching) · CSS snippet enable-disable management · open snippets folder · dual-mode color pickers (light/dark) · number sliders · dropdown selects · class toggles · collapsible heading groups · search filter · one-click variable-name copy · `@settings` ecosystem compatibility · beautified UI · modified-value highlighting · per-section export/import · 24 UI languages
 
 ### 简介 / Introduction
 
-**中文**：Style Tuner 是一款 Obsidian 插件，让主题、CSS 片段与插件 CSS 声明一组可配置项，并把这些可调设置集中在同一个设置面板里：支持在 `body` 上开关类名，以及设置数值、文本、颜色等 CSS 变量——无需手动改 CSS，主题调校所见即所得。它是 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings)（作者 [mgmeyers](https://github.com/mgmeyers)）的独立维护分支，遵循 GPL-3.0 协议，解析与原版完全相同的 `/* @settings` 配置块，现有主题与片段无需任何修改即可使用。**它是独立插件，不要与 Style Settings 同时启用。**
+**中文**：Style Tuner 是一款 Obsidian 插件，让主题、CSS 片段与插件 CSS 声明一组可配置项，并把这些可调设置集中在同一个设置面板里：支持在 `body` 上开关类名，以及设置数值、文本、颜色等 CSS 变量——无需手动改 CSS，主题调校所见即所得。除了样式变量，面板还接管了 Obsidian 原生外观设置中的三件事：颜色模式（跟随系统 / 亮色 / 深色）、主题切换，以及 CSS 片段的启停管理——既可以作为插件设置页打开，也可以作为独立标签页打开，边调边看。它是 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings)（作者 [mgmeyers](https://github.com/mgmeyers)）的独立维护分支，遵循 GPL-3.0 协议，解析与原版完全相同的 `/* @settings` 配置块，现有主题与片段无需任何修改即可使用。**它是独立插件，不要与 Style Settings 同时启用。**
 
-**English**: Style Tuner is an Obsidian plugin that lets themes, CSS snippets, and plugin CSS declare a set of configurable options, and collects them into a single settings panel: toggle classes on `body`, and set numeric, text, or color CSS variables — no hand-editing CSS, WYSIWYG theme tuning. It is an independently maintained fork of [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) by [mgmeyers](https://github.com/mgmeyers), licensed under GPL-3.0. It parses the exact same `/* @settings` blocks, so existing themes and snippets work unchanged. **It is a separate plugin — do not enable it together with Style Settings.**
+**English**: Style Tuner is an Obsidian plugin that lets themes, CSS snippets, and plugin CSS declare a set of configurable options, and collects them into a single settings panel: toggle classes on `body`, and set numeric, text, or color CSS variables — no hand-editing CSS, WYSIWYG theme tuning. Beyond style variables, the panel also takes over three native Obsidian appearance settings: color mode (system / light / dark), theme switching, and CSS snippet management — usable either as a plugin settings tab or as a standalone view, so you can tune and preview side by side. It is an independently maintained fork of [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) by [mgmeyers](https://github.com/mgmeyers), licensed under GPL-3.0. It parses the exact same `/* @settings` blocks, so existing themes and snippets work unchanged. **It is a separate plugin — do not enable it together with Style Settings.**
 
 ### 功能 / Features
 
 **中文**：
-- **生态兼容** — 完整支持 `/* @settings` 配置块：标题层级、类开关、类下拉、文本/数值/滑块/下拉变量、单色与亮暗双色取色器、信息文本、颜色渐变，以及按语言后缀的多语言标题（`title.zh`、`title.de` 等）。
+- **生态兼容** — 完整支持 `/* @settings` 配置块：标题层级、类开关、类下拉、文本/数值/滑块/下拉变量、单色与亮暗双色取色器、信息文本、颜色渐变，以及按语言后缀的多语言标题（`title.zh`、`title.de` 等）。`parse-style-settings` 事件与 `style-settings-*` 类名沿用原版，主题与插件无需改动。
+- **独立标签页视图** — 命令「打开 Style Tuner 视图」把面板作为标签页打开：顶部是搜索框、颜色模式（跟随系统 / 亮色 / 深色）与主题下拉、导入导出按钮，下方分「样式设置」与「CSS 片段」两个标签页；在侧栏这种窄宽度下也能用。
+- **外观设置接管** — 颜色模式与主题（默认主题 + 已安装主题）可直接在视图里切换，切换后样式设置面板会自动重新解析，无需来回跳设置页。
+- **CSS 片段管理** — 「CSS 片段」标签页列出库 `snippets` 目录中的全部片段并显示数量，逐项开关启停、可手动刷新列表，并能在系统文件管理器中直接打开片段文件夹（目录不存在时自动创建；桌面端专属，移动端隐藏）。
 - **变量名一键复制** — 每个变量设置项标题旁显示等宽 `--变量名` chip，单击即复制到剪贴板（成功/失败均有通知）；变量名直接取设置项 id，不依赖本地化标题文本。
 - **界面美化** — 可折叠标题按层级着色、树形缩进线呈现嵌套关系、设置项横向布局、设置页自动加宽，深浅色主题自适应。
 - **已自定义值高亮** — 改过默认值的设置行实时亮起标记，重置后立即熄灭。
 - **导出/导入增强** — 「全部设置」导出时可按一级区块勾选，只导出所选区块及其后代；来源已停用但留有自定义数据的区块也会列出，方便备份与迁移。
-- **稳定性** — 修复后台标签页恢复后的启动崩溃，懒挂载视图自动补齐数据。
+- **稳定性** — 修复后台标签页恢复后的启动崩溃，懒挂载视图自动补齐数据；外观/片段变化引发的并发刷新不再重复渲染片段列表。
 
 **English**:
-- **Ecosystem compatible** — Full support for `/* @settings` blocks: heading levels, class toggles and selects, text/number/slider/select variables, single and light/dark themed color pickers, info text, color gradients, and language-suffixed titles (`title.zh`, `title.de`, …).
+- **Ecosystem compatible** — Full support for `/* @settings` blocks: heading levels, class toggles and selects, text/number/slider/select variables, single and light/dark themed color pickers, info text, color gradients, and language-suffixed titles (`title.zh`, `title.de`, …). The `parse-style-settings` event and `style-settings-*` class names are kept from the original, so themes and plugins need no changes.
+- **Standalone tabbed view** — The "Show Style Tuner view" command opens the panel as a tab: search bar, color mode (system / light / dark) and theme dropdowns, and import/export buttons on top, with "Style Settings" and "CSS Snippets" tabs below — comfortable even in a narrow sidebar.
+- **Appearance settings built in** — Switch color mode and theme (default theme + installed themes) right from the view; the settings panel re-parses automatically after a theme change, so there is no back-and-forth with Obsidian's own settings.
+- **CSS snippet management** — The "CSS Snippets" tab lists every snippet in your vault's `snippets` folder with a live count, toggles each one on/off, refreshes the list on demand, and opens the snippets folder in your system file manager (created automatically if missing; desktop only, hidden on mobile).
 - **One-click variable-name copy** — Each variable setting shows a monospace `--var` chip next to its title; a single click copies the variable name to the clipboard (with success/failure notices). The name is taken from the setting `id`, independent of the localized title.
 - **Beautified UI** — Collapsible headings with per-level accent bars and tree guide lines, horizontal setting rows, auto-widened panel; adapts to light/dark themes.
 - **Modified-value highlighting** — Rows whose saved values differ from defaults light up in real time and reset immediately clears the marker.
 - **Enhanced export/import** — Exports can be filtered by first-level sections; stalled-but-stored sections are also listed for backup and migration.
-- **Stability** — Fixes the startup crash after restoring a background tab and lazily hydrates the view.
+- **Stability** — Fixes the startup crash after restoring a background tab and lazily hydrates the view; concurrent refreshes triggered by appearance/snippet changes no longer render the snippet list twice.
 
-### 安装
+### 安装 / Installation
 
-#### 1. 通过 BRAT(Beta Reviewer's Auto-update Tool)
+#### 1. 通过 BRAT（Beta Reviewer's Auto-update Tool）
 
 1. 安装并启用 [BRAT](https://github.com/TfTHacker/obsidian42-brat) 插件。
 2. 执行命令 `BRAT: Add a beta plugin for testing`。
 3. 输入 `Dyse-Sofqi/obsidian-style-tuner` 并确认。
 
-#### 2. 手动安装
+*English*: Install and enable [BRAT](https://github.com/TfTHacker/obsidian42-brat), run the command `BRAT: Add a beta plugin for testing`, then enter `Dyse-Sofqi/obsidian-style-tuner`.
+
+#### 2. 手动安装 / Manual installation
 
 1. 从本仓库的最新 [Release](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) 下载 `main.js`、`manifest.json`、`styles.css`。
 2. 在 `<vault>/.obsidian/plugins/style-tuner/` 目录下放入这三个文件。
 3. 在 Obsidian 的「第三方插件」设置中启用 **Style Tuner**。
 
+*English*: Download `main.js`, `manifest.json` and `styles.css` from the latest [release](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases), put the three files into `<vault>/.obsidian/plugins/style-tuner/`, then enable **Style Tuner** under Settings → Community plugins.
+
 > [!CAUTION]
-> 不要同时启用 Style Tuner 与 Style Settings:两者都会渲染 `/* @settings` 配置面板,同一变量被写入两次可能产生冲突。
+> 不要同时启用 Style Tuner 与 Style Settings：两者都会渲染 `/* @settings` 配置面板，同一变量被写入两次可能产生冲突。
+> Do not enable Style Tuner and Style Settings at the same time: both render `/* @settings` panels, and the same variable may be written twice with conflicting results.
 
-### 数据存储
+### 数据存储 / Data storage
 
-你的全部调校值保存在 `<vault>/.obsidian/plugins/style-tuner/data.json`,只存储与默认值不同的覆盖项。**卸载插件会删除该文件**(主题与片段文件本身不受影响)——卸载前请用设置面板的导出功能备份,或直接复制 `data.json`。
+你的全部调校值保存在 `<vault>/.obsidian/plugins/style-tuner/data.json`，只存储与默认值不同的覆盖项。**卸载插件会删除该文件**（主题与片段文件本身不受影响）——卸载前请用设置面板的导出功能备份，或直接复制 `data.json`。
+
+*English*: All of your tweaks are stored in `<vault>/.obsidian/plugins/style-tuner/data.json`, and only values differing from the defaults are written. **Uninstalling the plugin deletes that file** (your theme and snippet files are not affected) — export a backup from the panel, or copy `data.json`, before removing the plugin.
 
 ### 供作者使用:`/* @settings` 参考文档(英文)
 
@@ -266,14 +279,15 @@ settings:
         title: Bullet Icon
         description: Text used in bullet points
         type: variable-text
-        default: 鈥?        quotes: true
+        default: •
+        quotes: true
 */
 ```
 
 This will output the variable:
 
 ```
---icon: '鈥?
+--icon: '•'
 ```
 
 ## `variable-number`
@@ -618,26 +632,29 @@ Translations for titles and descriptions can be supplied for each language Obsid
 
 ```
 en: English
-zh: 绠€浣撲腑鏂?zh-TW: 绻侀珨涓枃
-ru: P褍褋褋泻懈泄
-ko: 頃滉淡鞏?it: Italiano
+zh: 简体中文
+zh-TW: 繁體中文
+ru: Русский
+ko: 한국어
+it: Italiano
 id: Bahasa Indonesia
-ro: Rom芒n膬
-pt-BR: Portugues do Brasil
-cz: 膷e拧tina
+ro: Română
+pt-BR: Português do Brasil
+cz: čeština
 de: Deutsch
-es: Espa帽ol
-fr: Fran莽ais
+es: Español
+fr: Français
 no: Norsk
-pl: j臋zyk polski
-pt: Portugu锚s
-ja: 鏃ユ湰瑾?da: Dansk
-uk: 校泻褉邪褩薪褋褜泻懈泄
+pl: język polski
+pt: Português
+ja: 日本語
+da: Dansk
+uk: український
 sq: Shqip
-tr: T眉rk莽e (k谋smi)
-hi: 啶灌た啶ㄠ啶︵ (啶嗋啶多た啶?
+tr: Türkçe (kısmi)
+hi: हिन्दी (आंशिक)
 nl: Nederlands (gedeeltelijk)
-ar: 丕賱毓乇亘賷丞 (噩夭卅賷)
+ar: العربية (جزئي)
 ```
 
 For example:
@@ -652,10 +669,10 @@ settings:
         id: my-css-class
         title: My Toggle
         title.de: Mein Toggle
-        title.ko: 雮?韱犼竴
+        title.ko: 내 토글
         description: Adds my-css-class to the body element
-        description.de: F眉gt my-css-class zum body-Element hinzu
-        description.ko: my-css-class毳?body 鞖旍唽鞐?於旉皜頃╇媹雼?
+        description.de: Fügt my-css-class zum body-Element hinzu
+        description.ko: my-css-class를 body 요소에 추가합니다
         type: class-toggle
 
 */

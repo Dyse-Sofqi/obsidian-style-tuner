@@ -2,7 +2,7 @@ import CSSSettingsPlugin from '../main';
 import { SettingsMarkup } from './SettingsMarkup';
 import { SnippetInfo } from '../AppearanceManager';
 import { t } from '../lang/helpers';
-import { ItemView, Notice, Setting, WorkspaceLeaf } from 'obsidian';
+import { ItemView, Notice, Platform, Setting, WorkspaceLeaf } from 'obsidian';
 import { ParsedCSSSettings } from '../SettingHandlers';
 import { ErrorList } from '../Utils';
 
@@ -20,6 +20,8 @@ export class SettingsView extends ItemView {
 	private tabSettingsEl: HTMLElement;
 	private tabSnippetsEl: HTMLElement;
 	private navItemEls: Record<TabKey, HTMLElement>;
+	/** 片段列表刷新序号：并发刷新时丢弃过期结果（见 renderSnippets） */
+	private snippetsGeneration = 0;
 
 	constructor(plugin: CSSSettingsPlugin, leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -144,7 +146,7 @@ export class SettingsView extends ItemView {
 
 	private async renderSnippets(): Promise<void> {
 		const { tabSnippetsEl } = this;
-		tabSnippetsEl.empty();
+		const generation = ++this.snippetsGeneration;
 
 		let snippets: SnippetInfo[];
 		try {
@@ -154,18 +156,33 @@ export class SettingsView extends ItemView {
 			snippets = [];
 		}
 
-		new Setting(tabSnippetsEl)
-			.setName(
-				t('{{count}} CSS snippets').replace(
-					'{{count}}',
-					String(snippets.length)
-				)
-			)
-			.addButton((button) =>
+		// 读取期间可能又被刷新了一次（切换标签页 / css-change）。
+		// 过期的这次不能再写 DOM：两次渲染会先后往同一个容器里追加，
+		// 片段列表就会被重复渲染出来。只让最新一次刷新提交。
+		if (generation !== this.snippetsGeneration) return;
+
+		// 数据到手后再整体替换，容器不会在等待期间处于空状态
+		// （空容器会让 switchTab 的 hasChildNodes() 误判为「尚未渲染」而再刷新一次）。
+		tabSnippetsEl.empty();
+
+		const header = new Setting(tabSnippetsEl).setName(
+			t('{{count}} CSS snippets').replace('{{count}}', String(snippets.length))
+		);
+
+		// 打开片段文件夹：移动端没有系统文件管理器可打开，仅在桌面端提供
+		if (Platform.isDesktopApp) {
+			header.addButton((button) =>
 				button
-					.setButtonText(t('Refresh'))
-					.onClick(() => void this.renderSnippets())
+					.setButtonText(t('Open snippets folder'))
+					.onClick(() => void this.openSnippetsFolder())
 			);
+		}
+
+		header.addButton((button) =>
+			button
+				.setButtonText(t('Refresh'))
+				.onClick(() => void this.renderSnippets())
+		);
 
 		if (snippets.length === 0) {
 			tabSnippetsEl.createDiv({ cls: 'style-settings-empty' }, (wrapper) => {
@@ -204,6 +221,16 @@ export class SettingsView extends ItemView {
 						}
 					});
 				});
+		}
+	}
+
+	/** 在系统文件管理器中打开 snippets 目录 */
+	private async openSnippetsFolder(): Promise<void> {
+		try {
+			await this.plugin.appearanceManager.openSnippetsFolder();
+		} catch (e) {
+			console.error('Style Tuner | Failed to open the snippets folder', e);
+			new Notice(t('Failed to open the snippets folder'));
 		}
 	}
 }

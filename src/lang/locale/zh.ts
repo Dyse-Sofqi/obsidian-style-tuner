@@ -78,5 +78,7 @@ export const zh = {
 	'Add CSS files to the snippets folder of your vault to manage them here. ':
 		'在库的 snippets 文件夹中添加 CSS 文件，即可在此启停管理。 ',
 	'Refresh': '刷新',
+	'Open snippets folder': '打开样式代码片段文件夹',
+	'Failed to open the snippets folder': '打开样式代码片段文件夹失败',
 	'Failed to change appearance': '外观设置更改失败',
 };

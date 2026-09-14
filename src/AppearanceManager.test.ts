@@ -35,10 +35,12 @@ function makeMockApp(
 			throw new Error(`ENOENT: ${path}`);
 		}),
 		write: vi.fn(async () => undefined),
+		exists: vi.fn(async () => true),
 	};
 	const vault = {
 		configDir: '.obsidian',
 		adapter,
+		createFolder: vi.fn(async () => undefined),
 		getConfig: vi.fn((key: string) => options.getConfig?.[key]),
 		setConfig: vi.fn(),
 	};
@@ -188,6 +190,71 @@ describe('AppearanceManager.setSnippetEnabled', () => {
 			'.obsidian/appearance.json',
 			expect.stringContaining('"enabledCssSnippets"')
 		);
+	});
+});
+
+describe('AppearanceManager.getSnippetsFolder', () => {
+	it('prefers the runtime CustomCss path', () => {
+		const app = makeMockApp({ files: [], folders: [] }, { getConfig: {} });
+		app.customCss.getSnippetsFolder = () => '.obsidian/snippets';
+		// 让回退路径与运行时路径不同，确保断言的是运行时值
+		app.vault.configDir = '.config';
+
+		expect(new AppearanceManager(app).getSnippetsFolder()).toBe(
+			'.obsidian/snippets'
+		);
+	});
+
+	it('falls back to <configDir>/snippets when CustomCss is missing', () => {
+		const app = makeMockApp({ files: [], folders: [] }, { getConfig: {} });
+		app.customCss.getSnippetsFolder = undefined;
+		app.vault.configDir = '.config';
+
+		expect(new AppearanceManager(app).getSnippetsFolder()).toBe(
+			'.config/snippets'
+		);
+	});
+});
+
+describe('AppearanceManager.openSnippetsFolder', () => {
+	it('creates the folder when missing, then opens it with the default app', async () => {
+		const app = makeMockApp({ files: [], folders: [] }, { getConfig: {} });
+		app.vault.adapter.exists = vi.fn(async () => false);
+		app.openWithDefaultApp = vi.fn(async () => undefined);
+
+		await new AppearanceManager(app).openSnippetsFolder();
+
+		expect(app.vault.createFolder).toHaveBeenCalledWith('.obsidian/snippets');
+		expect(app.openWithDefaultApp).toHaveBeenCalledWith('.obsidian/snippets');
+	});
+
+	it('opens an existing folder without recreating it', async () => {
+		const app = makeMockApp({ files: [], folders: [] }, { getConfig: {} });
+		app.openWithDefaultApp = vi.fn(async () => undefined);
+
+		await new AppearanceManager(app).openSnippetsFolder();
+
+		expect(app.vault.createFolder).not.toHaveBeenCalled();
+		expect(app.openWithDefaultApp).toHaveBeenCalledWith('.obsidian/snippets');
+	});
+
+	it('rejects when the runtime cannot open folders', async () => {
+		const app = makeMockApp({ files: [], folders: [] }, { getConfig: {} });
+
+		await expect(
+			new AppearanceManager(app).openSnippetsFolder()
+		).rejects.toThrow();
+	});
+
+	it('propagates runtime failures so the view can report them', async () => {
+		const app = makeMockApp({ files: [], folders: [] }, { getConfig: {} });
+		app.openWithDefaultApp = vi.fn(async () => {
+			throw new Error('no default app');
+		});
+
+		await expect(
+			new AppearanceManager(app).openSnippetsFolder()
+		).rejects.toThrow('no default app');
 	});
 });
 
