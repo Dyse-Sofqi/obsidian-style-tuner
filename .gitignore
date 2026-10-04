@@ -16,5 +16,11 @@ data.json
 .hotreload
 release-notes.md
 
+# 本地界面验证台（用真实源码 + Obsidian app.css 在无头浏览器里出图，见 memory）
+.verify/
+
+# 临时全量类型检查配置（根 tsconfig 的 include 不含 src/settingsView/**）
+tsconfig.check.json
+
 # 系统盘残留目录（Windows 缓存工件，勿提交）
 %SystemDrive%/

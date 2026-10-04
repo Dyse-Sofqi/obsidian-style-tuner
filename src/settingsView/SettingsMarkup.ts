@@ -29,12 +29,11 @@ export class SettingsMarkup extends Component {
 	settingsContainerEl: HTMLElement;
 	isView: boolean;
 	/**
-	 * 视图级工具栏容器（搜索框 + 外观控件 + 导入导出）：
-	 * 独立视图模式下由 SettingsView 提供（标签栏上方、脱离页面内容区）；
-	 * 插件设置标签页模式为 null，工具栏渲染到内容区顶部。
+	 * 工具栏容器（搜索框 + 外观控件 + 导入导出）：由 SettingsPanel 提供
+	 * （标签栏上方、脱离页面内容区）；为空时退回渲染到内容区顶部。
 	 */
 	toolbarEl: HTMLElement | null = null;
-	/** 工具栏中的外观控件挂载点（颜色模式 / 主题下拉），仅视图模式存在 */
+	/** 工具栏中的外观控件挂载点（颜色模式 / 主题下拉） */
 	appearanceControlsEl: HTMLElement | null = null;
 	/** 刷新序号：并发刷新时丢弃过期结果 */
 	private controlsGeneration = 0;
@@ -113,7 +112,7 @@ export class SettingsMarkup extends Component {
 	}
 
 	// ------------------------------------------------------------------
-	// Appearance controls (standalone view toolbar)
+	// Appearance controls (toolbar)
 	// ------------------------------------------------------------------
 
 	/**
@@ -314,8 +313,8 @@ export class SettingsMarkup extends Component {
 	/**
 	 * Renders the toolbar row: search bar, appearance controls (color mode /
 	 * theme dropdowns) and the import/export buttons, in that order.
-	 * Standalone view: the toolbar lives above the tab bar (view-level);
-	 * plugin settings tab: the toolbar renders at the top of the content area.
+	 * Both surfaces share this row (see SettingsPanel); it mounts above the
+	 * tab bar via `toolbarEl`.
 	 */
 	private renderToolbar(): void {
 		const container = this.toolbarEl ?? this.containerEl;
@@ -324,12 +323,9 @@ export class SettingsMarkup extends Component {
 		new Setting(container).then((setting) => {
 			// Appearance controls mount point (color mode / theme dropdowns),
 			// rendered between the search bar and the import/export buttons.
-			// Standalone view only: the plugin settings tab keeps the original layout.
-			if (this.isView) {
-				this.appearanceControlsEl = setting.controlEl.createDiv({
-					cls: 'style-settings-appearance-controls',
-				});
-			}
+			this.appearanceControlsEl = setting.controlEl.createDiv({
+				cls: 'style-settings-appearance-controls',
+			});
 
 			// Import: Obsidian-native icon button opening the import modal
 			setting.controlEl.createEl(
@@ -391,9 +387,7 @@ export class SettingsMarkup extends Component {
 			});
 
 			// Mount point is ready now: first render of the appearance dropdowns
-			if (this.isView) {
-				void this.refreshAppearanceControls();
-			}
+			void this.refreshAppearanceControls();
 		});
 	}
 

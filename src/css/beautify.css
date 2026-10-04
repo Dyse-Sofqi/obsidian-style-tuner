@@ -372,21 +372,25 @@
 }
 
 /* ============================================================
-   5. Appearance controls & tab navigation (standalone view)
-   —— Header dropdowns (color mode / CSS theme), the tab bar for
+   5. Toolbar & tab navigation
+   —— Toolbar dropdowns (color mode / CSS theme), the tab bar for
       "Style Settings" / "CSS Snippets", and the snippet list.
+      Shared by the standalone view and the plugin settings tab.
    ============================================================ */
 
 .style-settings-view {
   padding: 8px 12px 24px;
 }
 
-/* ---- View-level toolbar row (above the tab bar) ---- */
+/* ---- Toolbar row (above the tab bar) ----
+   No separator line here on purpose: the tab bar draws its own baseline,
+   and a second rule right above it read as a stray band. Spacing is done
+   with padding (which never collapses with the next sibling's margin), so
+   the gap is deterministic in both the view and the settings modal. */
 
 .style-settings-toolbar {
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 0;
+  padding-bottom: 12px;
 }
 
 /* ---- Toolbar row: appearance dropdowns between search and import/export ---- */
@@ -410,36 +414,63 @@
   color: var(--text-muted);
 }
 
-/* ---- Tab bar ---- */
+/* ---- Tab bar ----
+   Segmented look (borrowed from MDRazor's settings tabs): the active tab is
+   a rounded-top box sitting on the baseline, inactive tabs are plain labels
+   that only light up on hover. The -1px bottom margin pulls each tab down
+   over the baseline so the active tab's background hides that stretch of
+   the rule instead of the rule cutting through it.
+
+   Every rule is prefixed with `.style-settings-nav` on purpose: the items
+   are real <button>s, and Obsidian's own `button:not(.clickable-icon)` rule
+   (specificity 0-1-1) sets `background-color: var(--interactive-normal)`
+   plus `box-shadow: var(--input-shadow)` — without the extra class the
+   inactive tabs render as white raised buttons instead of plain labels. */
 
 .style-settings-nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
-  margin: 14px 0 4px;
+  margin: 12px 0 0;
   border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.style-settings-nav-item {
+.style-settings-nav .style-settings-nav-item {
   background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  padding: 8px 14px;
+  box-shadow: none;
+  height: auto;
+  padding: 6px 10px;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: var(--font-ui-medium);
+  font-size: var(--font-ui-small);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.style-settings-nav-item:hover {
+.style-settings-nav .style-settings-nav-item:hover {
+  background: var(--background-modifier-hover);
   color: var(--text-normal);
 }
 
-.style-settings-nav-item.is-active {
+.style-settings-nav .style-settings-nav-item.is-active {
   color: var(--text-normal);
-  border-bottom-color: var(--interactive-accent);
+  background: var(--background-secondary);
+  border-color: var(--background-modifier-border);
+  font-weight: 600;
 }
 
-/* ---- Tab content ---- */
+/* the scoped rules above also win over Obsidian's own focus ring; put it back */
+.style-settings-nav .style-settings-nav-item:focus-visible {
+  box-shadow: 0 0 0 3px var(--background-modifier-border-focus);
+}
+
+/* ---- Tab content ----
+   A little breathing room below the baseline; without it the first heading
+   card butts right up against the rule. */
 
 .style-settings-tab {
   display: none;
@@ -447,6 +478,7 @@
 
 .style-settings-tab.is-active {
   display: block;
+  padding-top: 12px;
 }
 
 /* ---- CSS snippets tab ---- */

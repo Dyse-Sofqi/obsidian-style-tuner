@@ -31,8 +31,8 @@
 
 **中文**：
 - **生态兼容** — 完整支持 `/* @settings` 配置块：标题层级、类开关、类下拉、文本/数值/滑块/下拉变量、单色与亮暗双色取色器、信息文本、颜色渐变，以及按语言后缀的多语言标题（`title.zh`、`title.de` 等）。`parse-style-settings` 事件与 `style-settings-*` 类名沿用原版，主题与插件无需改动。
-- **独立标签页视图** — 命令「打开 Style Tuner 视图」把面板作为标签页打开：顶部是搜索框、颜色模式（跟随系统 / 亮色 / 深色）与主题下拉、导入导出按钮，下方分「样式设置」与「CSS 片段」两个标签页；在侧栏这种窄宽度下也能用。
-- **外观设置接管** — 颜色模式与主题（默认主题 + 已安装主题）可直接在视图里切换，切换后样式设置面板会自动重新解析，无需来回跳设置页。
+- **两处入口，界面一致** — 命令「打开 Style Tuner 视图」把面板作为标签页打开；「设置 → 第三方插件 → Style Tuner」的设置页与它完全相同：顶部是搜索框、颜色模式（跟随系统 / 亮色 / 深色）与主题下拉、导入导出按钮，下方分「样式设置」与「CSS 片段」两个标签页；在侧栏这种窄宽度下也能用。
+- **外观设置接管** — 颜色模式与主题（默认主题 + 已安装主题）可直接在视图或插件设置页里切换，切换后样式设置面板会自动重新解析，无需来回跳 Obsidian 外观设置。
 - **CSS 片段管理** — 「CSS 片段」标签页列出库 `snippets` 目录中的全部片段并显示数量，逐项开关启停、可手动刷新列表，并能在系统文件管理器中直接打开片段文件夹（目录不存在时自动创建；桌面端专属，移动端隐藏）。
 - **变量名一键复制** — 每个变量设置项标题旁显示等宽 `--变量名` chip，单击即复制到剪贴板（成功/失败均有通知）；变量名直接取设置项 id，不依赖本地化标题文本。
 - **界面美化** — 可折叠标题按层级着色、树形缩进线呈现嵌套关系、设置项横向布局、设置页自动加宽，深浅色主题自适应。
@@ -42,8 +42,8 @@
 
 **English**:
 - **Ecosystem compatible** — Full support for `/* @settings` blocks: heading levels, class toggles and selects, text/number/slider/select variables, single and light/dark themed color pickers, info text, color gradients, and language-suffixed titles (`title.zh`, `title.de`, …). The `parse-style-settings` event and `style-settings-*` class names are kept from the original, so themes and plugins need no changes.
-- **Standalone tabbed view** — The "Show Style Tuner view" command opens the panel as a tab: search bar, color mode (system / light / dark) and theme dropdowns, and import/export buttons on top, with "Style Settings" and "CSS Snippets" tabs below — comfortable even in a narrow sidebar.
-- **Appearance settings built in** — Switch color mode and theme (default theme + installed themes) right from the view; the settings panel re-parses automatically after a theme change, so there is no back-and-forth with Obsidian's own settings.
+- **Two identical entry points** — The "Show Style Tuner view" command opens the panel as a tab, and the plugin settings tab (Settings → Style Tuner) is exactly the same: search bar, color mode (system / light / dark) and theme dropdowns, and import/export buttons on top, with "Style Settings" and "CSS Snippets" tabs below — comfortable even in a narrow sidebar.
+- **Appearance settings built in** — Switch color mode and theme (default theme + installed themes) right from the view or the plugin settings tab; the settings panel re-parses automatically after a theme change, so there is no back-and-forth with Obsidian's own settings.
 - **CSS snippet management** — The "CSS Snippets" tab lists every snippet in your vault's `snippets` folder with a live count, toggles each one on/off, refreshes the list on demand, and opens the snippets folder in your system file manager (created automatically if missing; desktop only, hidden on mobile).
 - **One-click variable-name copy** — Each variable setting shows a monospace `--var` chip next to its title; a single click copies the variable name to the clipboard (with success/failure notices). The name is taken from the setting `id`, independent of the localized title.
 - **Beautified UI** — Collapsible headings with per-level accent bars and tree guide lines, horizontal setting rows, auto-widened panel; adapts to light/dark themes.
