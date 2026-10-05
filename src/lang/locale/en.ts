@@ -48,6 +48,8 @@ export const en = {
 
 	// Export modal section picker
 	'Sections': 'Sections',
+	'All customized values of the checked sections.':
+		'All customized values of the checked sections.',
 	'Uncheck all': 'Uncheck all',
 	'Check all': 'Check all',
 	'Only checked sections are included in the exported configuration.':

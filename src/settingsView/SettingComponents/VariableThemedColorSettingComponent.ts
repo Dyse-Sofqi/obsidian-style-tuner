@@ -6,6 +6,7 @@ import {
 	isValidDefaultColor,
 	isValidSavedColor,
 	onPickrCancel,
+	setCssProps,
 } from '../../Utils';
 import { t } from '../../lang/helpers';
 import { AbstractSettingComponent } from './AbstractSettingComponent';
@@ -143,7 +144,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		const savedColor =
 			valueLight && isValidSavedColor(valueLight) ? valueLight : undefined;
 		const defaultColor = savedColor || this.setting['default-light'];
-		themeLightWrapper.style.setProperty('--pcr-color', defaultColor);
+		setCssProps(themeLightWrapper, { '--pcr-color': defaultColor });
 		const pickerEl = themeLightWrapper.createDiv({ cls: 'picker' });
 
 		const pickrLight = (this.pickrLight = Pickr.create(
@@ -177,7 +178,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		themeLightReset.onClick(() => {
 			const resetColor = this.setting['default-light'];
 			pickrLight.setColor(resetColor);
-			themeLightWrapper.style.setProperty('--pcr-color', resetColor);
+			setCssProps(themeLightWrapper, { '--pcr-color': resetColor });
 			this.settingsManager.clearSetting(this.sectionId, idLight);
 			this.updateModifiedState();
 		});
@@ -197,7 +198,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		const savedColor =
 			valueDark && isValidSavedColor(valueDark) ? valueDark : undefined;
 		const defaultColor = savedColor || this.setting['default-dark'];
-		themeDarkWrapper.style.setProperty('--pcr-color', defaultColor);
+		setCssProps(themeDarkWrapper, { '--pcr-color': defaultColor });
 		const pickerEl = themeDarkWrapper.createDiv({ cls: 'picker' });
 
 		const pickrDark = (this.pickrDark = Pickr.create(
@@ -231,7 +232,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		themeDarkReset.onClick(() => {
 			const resetColor = this.setting['default-dark'];
 			pickrDark.setColor(resetColor);
-			themeDarkWrapper.style.setProperty('--pcr-color', resetColor);
+			setCssProps(themeDarkWrapper, { '--pcr-color': resetColor });
 			this.settingsManager.clearSetting(this.sectionId, idDark);
 			this.updateModifiedState();
 		});
@@ -263,6 +264,6 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 
 		instance.hide();
 		instance.addSwatch(hex);
-		wrapperEl.style.setProperty('--pcr-color', hex);
+		setCssProps(wrapperEl, { '--pcr-color': hex });
 	}
 }

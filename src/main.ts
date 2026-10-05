@@ -2,8 +2,10 @@ import { ClassToggle, CSSSetting, ParsedCSSSettings } from './SettingHandlers';
 import { CSSSettingsManager } from './SettingsManager';
 import {
 	ErrorList,
+	escapeHtml,
 	getDescription,
 	getTitle,
+	getVariableName,
 	nameRegExp,
 	settingRegExp,
 	SettingsSeachResource,
@@ -48,7 +50,9 @@ export default class CSSSettingsPlugin extends Plugin {
 		this.registerView(viewType, (leaf) => new SettingsView(this, leaf));
 
 		this.addCommand({
-			id: 'show-style-tuner-leaf',
+			// 命令 id 不带插件 id：Obsidian 已经用插件 id 做命名空间
+			// （插件审核规范 obsidianmd/commands/no-plugin-id-in-command-id）
+			id: 'show-view',
 			name: t('Show Style Tuner view'),
 			callback: () => {
 				this.activateView();
@@ -102,8 +106,8 @@ export default class CSSSettingsPlugin extends Plugin {
 	debounceTimer = 0;
 
 	parseCSS() {
-		clearTimeout(this.debounceTimer);
-		this.debounceTimer = activeWindow.setTimeout(() => {
+		window.clearTimeout(this.debounceTimer);
+		this.debounceTimer = window.setTimeout(() => {
 			this.settingsList = [];
 			this.errorList = [];
 
@@ -157,12 +161,26 @@ export default class CSSSettingsPlugin extends Plugin {
 				for (const parsedCSSSetting of this.settingsList) {
 					settingsSearch.addResources(
 						...parsedCSSSetting.settings.map((x) => {
-							const settingsSearchResource: SettingsSeachResource = {
-								tab: 'style-tuner',
-								name: 'Style Tuner',
-								text: getTitle(x) ?? '',
-								desc: getDescription(x) ?? '',
-							};
+							// Settings Search 的 fuzzy 匹配同时比对 text 与
+							// desc，把 CSS 变量名追加到描述里，按
+							// `--ribbon-padding` 搜索也能命中。该插件把
+							// desc 按 innerHTML 渲染，故变量名做 HTML 转义。
+							const variableName = getVariableName(x);
+							const description = getDescription(x) ?? '';
+							const variableHint = variableName
+								? `<code>${escapeHtml(variableName)}</code>`
+								: '';
+
+							const settingsSearchResource: SettingsSeachResource =
+								{
+									tab: 'style-tuner',
+									name: 'Style Tuner',
+									text: getTitle(x) ?? '',
+									desc:
+										description +
+										(description && variableHint ? ' ' : '') +
+										variableHint,
+								};
 							return settingsSearchResource;
 						})
 					);
@@ -328,7 +346,9 @@ export default class CSSSettingsPlugin extends Plugin {
 		document.body.classList.remove('css-settings-manager');
 
 		this.settingsManager.cleanup();
-		this.deactivateView();
+		// 不在这里 detachLeavesOfType：onunload 里摘叶子会把用户的工作区布局
+		// 一起重置（插件审核规范 obsidianmd/detach-leaves），插件卸载时
+		// Obsidian 会自行清理本插件注册的视图叶子。
 		this.unregisterSettingsFromSettingsSearch();
 	}
 

@@ -63,7 +63,7 @@ export class ImportModal extends Modal {
 			};
 
 			// Build a file input
-			setting.controlEl.createEl(
+			const importInput = setting.controlEl.createEl(
 				'input',
 				{
 					cls: 'style-settings-import-input',
@@ -74,9 +74,9 @@ export class ImportModal extends Modal {
 						accept: '.json',
 					},
 				},
-				(importInput) => {
+				(input) => {
 					// Set up a FileReader so we can parse the file contents
-					importInput.addEventListener('change', (e) => {
+					input.addEventListener('change', (e) => {
 						if (!e.target) return;
 
 						const reader = new FileReader();
@@ -94,14 +94,11 @@ export class ImportModal extends Modal {
 				}
 			);
 
-			// Build a label we will style as a link
-			setting.controlEl.createEl('label', {
-				cls: 'style-settings-import-label',
-				text: t('Import from file'),
-				attr: {
-					for: 'style-settings-import-input',
-				},
-			});
+			// 用 Obsidian 原生按钮触发上面那个隐藏的 file input
+			// （原来是蓝色文字链接「从文件导入」，与导出弹窗的按钮风格不一致）
+			const importButton = new ButtonComponent(setting.controlEl);
+			importButton.setButtonText(t('Import from file'));
+			importButton.onClick(() => importInput.click());
 
 			new TextAreaComponent(contentEl)
 				.setPlaceholder(t('Paste config here...'))

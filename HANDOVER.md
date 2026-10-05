@@ -25,8 +25,12 @@ renamed to **Style Tuner** (`style-tuner`).
 
 ### Code (user-visible strings only)
 
-- Command `show-style-settings-leaf` → `show-style-tuner-leaf`,
-  display name "Show style settings view" → "Show Style Tuner view".
+- Command `show-style-settings-leaf` → `show-style-tuner-leaf` → `show-view`
+  (the command id no longer repeats the plugin id, per Obsidian's
+  `obsidianmd/commands/no-plugin-id-in-command-id` rule; Obsidian adds the
+  plugin id namespace itself). Display name "Show style settings view" →
+  "Show Style Tuner view" and unchanged since.
+  **Note**: renaming the id drops any hotkey the user had bound to the old id.
 - Item view `getDisplayText()` → "Style Tuner".
 - Settings-search integration: registers under tab id `style-tuner`
   and name "Style Tuner"; also unregisters the legacy

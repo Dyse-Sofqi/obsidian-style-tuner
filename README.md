@@ -17,9 +17,9 @@
 
 ### 关键词 / Keywords
 
-**中文**：主题变量调校 · CSS 片段可视化配置 · 独立标签页视图 · 外观面板（颜色模式 / 主题切换）· CSS 片段启停管理 · 打开片段文件夹 · 颜色选择器（亮/暗双模式）· 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · 变量名一键复制 · `@settings` 生态兼容 · 界面美化 · 已修改值高亮 · 按区块导出 / 导入 · 24 种界面语言
+**中文**：主题变量调校 · CSS 片段可视化配置 · 独立标签页视图 · 外观面板（颜色模式 / 主题切换）· CSS 片段启停管理 · 打开片段文件夹 · 颜色选择器（亮/暗双模式）· 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · **按变量名搜索** · 变量名一键复制 · `@settings` 生态兼容 · 界面美化 · 已修改值高亮 · 两栏导出弹窗 · 按区块导出 / 导入 · 24 种界面语言
 
-**English**: theme variable fine-tuning · visual CSS snippet configuration · standalone tabbed view · appearance panel (color mode / theme switching) · CSS snippet enable-disable management · open snippets folder · dual-mode color pickers (light/dark) · number sliders · dropdown selects · class toggles · collapsible heading groups · search filter · one-click variable-name copy · `@settings` ecosystem compatibility · beautified UI · modified-value highlighting · per-section export/import · 24 UI languages
+**English**: theme variable fine-tuning · visual CSS snippet configuration · standalone tabbed view · appearance panel (color mode / theme switching) · CSS snippet enable-disable management · open snippets folder · dual-mode color pickers (light/dark) · number sliders · dropdown selects · class toggles · collapsible heading groups · search filter · **search by variable name** · one-click variable-name copy · `@settings` ecosystem compatibility · beautified UI · modified-value highlighting · two-column export dialog · per-section export/import · 24 UI languages
 
 ### 简介 / Introduction
 
@@ -33,22 +33,28 @@
 - **生态兼容** — 完整支持 `/* @settings` 配置块：标题层级、类开关、类下拉、文本/数值/滑块/下拉变量、单色与亮暗双色取色器、信息文本、颜色渐变，以及按语言后缀的多语言标题（`title.zh`、`title.de` 等）。`parse-style-settings` 事件与 `style-settings-*` 类名沿用原版，主题与插件无需改动。
 - **两处入口，界面一致** — 命令「打开 Style Tuner 视图」把面板作为标签页打开；「设置 → 第三方插件 → Style Tuner」的设置页与它完全相同：顶部是搜索框、颜色模式（跟随系统 / 亮色 / 深色）与主题下拉、导入导出按钮，下方分「样式设置」与「CSS 片段」两个标签页；在侧栏这种窄宽度下也能用。
 - **外观设置接管** — 颜色模式与主题（默认主题 + 已安装主题）可直接在视图或插件设置页里切换，切换后样式设置面板会自动重新解析，无需来回跳 Obsidian 外观设置。
-- **CSS 片段管理** — 「CSS 片段」标签页列出库 `snippets` 目录中的全部片段并显示数量，逐项开关启停、可手动刷新列表，并能在系统文件管理器中直接打开片段文件夹（目录不存在时自动创建；桌面端专属，移动端隐藏）。
+- **CSS 片段管理** — 「CSS 片段」标签页列出库 `snippets` 目录中的全部片段并显示数量，逐项开关启停、可手动刷新列表，并能在系统文件管理器中直接打开片段文件夹（刷新与打开文件夹是列表标题行的图标按钮，悬停有提示；目录不存在时自动创建；桌面端专属的打开文件夹，移动端隐藏）。
 - **变量名一键复制** — 每个变量设置项标题旁显示等宽 `--变量名` chip，单击即复制到剪贴板（成功/失败均有通知）；变量名直接取设置项 id，不依赖本地化标题文本。
+- **按变量名搜索** — 搜索框除标题与描述外还匹配设置项 id：变量设置输入 `--ribbon-padding` 或 `ribbon-padding` 都能搜到，类开关可输入类名（如 `wide-tables`）；命中后计数与自动展开行为与按标题搜索一致。装过 Settings Search 插件的话，它的全局设置搜索里也能按变量名命中。
+- **窄宽度也排得整齐** — 工具栏为垂直滚动条预留宽度，CSS 片段列表变长不会把「颜色模式 / 主题」两个下拉挤到第二行；空间实在不够时整行换行（搜索框独占一行、控件落到第二行），极窄容器（侧栏 / 移动端）下两个控件各占一行。
 - **界面美化** — 可折叠标题按层级着色、树形缩进线呈现嵌套关系、设置项横向布局、设置页自动加宽，深浅色主题自适应。
 - **已自定义值高亮** — 改过默认值的设置行实时亮起标记，重置后立即熄灭。
-- **导出/导入增强** — 「全部设置」导出时可按一级区块勾选，只导出所选区块及其后代；来源已停用但留有自定义数据的区块也会列出，方便备份与迁移。
+- **导出/导入增强** — 「全部设置」导出时可按一级区块勾选（默认只勾选来源仍启用的区块，来源已停用的残留配置默认不导出，但会列出来供手动勾选），只导出所选区块及其后代；导出弹窗为左右两栏（左侧勾选区块、右侧看配置文本），窗口更大、区块列表可滚动，底部按钮均为 Obsidian 原生按钮。
+- **合规** — 不创建动态 `<style>` 元素（CSS 变量走 Obsidian 的 `setCssProps` 写在 `body` 的内联自定义属性上），已通过官方 `eslint-plugin-obsidianmd` recommended 规则复查、error 级规则全部通过。
 - **稳定性** — 修复后台标签页恢复后的启动崩溃，懒挂载视图自动补齐数据；外观/片段变化引发的并发刷新不再重复渲染片段列表。
 
 **English**:
 - **Ecosystem compatible** — Full support for `/* @settings` blocks: heading levels, class toggles and selects, text/number/slider/select variables, single and light/dark themed color pickers, info text, color gradients, and language-suffixed titles (`title.zh`, `title.de`, …). The `parse-style-settings` event and `style-settings-*` class names are kept from the original, so themes and plugins need no changes.
 - **Two identical entry points** — The "Show Style Tuner view" command opens the panel as a tab, and the plugin settings tab (Settings → Style Tuner) is exactly the same: search bar, color mode (system / light / dark) and theme dropdowns, and import/export buttons on top, with "Style Settings" and "CSS Snippets" tabs below — comfortable even in a narrow sidebar.
 - **Appearance settings built in** — Switch color mode and theme (default theme + installed themes) right from the view or the plugin settings tab; the settings panel re-parses automatically after a theme change, so there is no back-and-forth with Obsidian's own settings.
-- **CSS snippet management** — The "CSS Snippets" tab lists every snippet in your vault's `snippets` folder with a live count, toggles each one on/off, refreshes the list on demand, and opens the snippets folder in your system file manager (created automatically if missing; desktop only, hidden on mobile).
+- **CSS snippet management** — The "CSS Snippets" tab lists every snippet in your vault's `snippets` folder with a live count, toggles each one on/off, refreshes the list on demand, and opens the snippets folder in your system file manager (refresh and open-folder are icon buttons in the list header with tooltips; the folder is created automatically if missing; opening it is desktop only, hidden on mobile).
 - **One-click variable-name copy** — Each variable setting shows a monospace `--var` chip next to its title; a single click copies the variable name to the clipboard (with success/failure notices). The name is taken from the setting `id`, independent of the localized title.
+- **Search by variable name** — Besides titles and descriptions, the search bar matches setting ids: searching `--ribbon-padding` or `ribbon-padding` finds the variable setting, and class toggles can be found by their class name (e.g. `wide-tables`); result counts and auto-expansion behave exactly as with title search. With the Settings Search plugin installed, its global settings search finds variables by name too.
+- **Tidy at any width** — The toolbar reserves room for the vertical scrollbar, so a growing snippet list never pushes the color-mode / theme dropdowns onto a second row; when space does run out the whole row wraps (search bar on its own line, controls below), and in very narrow containers (sidebar / mobile) each control takes its own row.
 - **Beautified UI** — Collapsible headings with per-level accent bars and tree guide lines, horizontal setting rows, auto-widened panel; adapts to light/dark themes.
 - **Modified-value highlighting** — Rows whose saved values differ from defaults light up in real time and reset immediately clears the marker.
-- **Enhanced export/import** — Exports can be filtered by first-level sections; stalled-but-stored sections are also listed for backup and migration.
+- **Enhanced export/import** — Exports can be filtered by first-level sections (only sections whose source is still enabled are checked by default; leftover customizations from disabled sources are listed but not exported unless you check them). The export dialog is split into two columns (sections on the left, config text on the right) with a larger, scrollable section list and native Obsidian buttons.
+- **Review compliant** — No dynamic `<style>` elements (CSS variables are applied as inline custom properties on `body` through Obsidian's `setCssProps`), and the source passes the official `eslint-plugin-obsidianmd` recommended rule set with zero errors.
 - **Stability** — Fixes the startup crash after restoring a background tab and lazily hydrates the view; concurrent refreshes triggered by appearance/snippet changes no longer render the snippet list twice.
 
 ### 安装 / Installation

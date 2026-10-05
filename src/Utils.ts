@@ -1,8 +1,10 @@
 import { Meta, WithDescription, WithTitle } from './SettingHandlers';
+import { SettingType } from './settingsView/SettingComponents/types';
 import { lang, t } from './lang/helpers';
 import Pickr from '@simonwep/pickr';
 import { App } from 'obsidian';
 import { EditorView } from '@codemirror/view';
+import fuzzysort from 'fuzzysort';
 
 export const settingRegExp = /\/\*!?\s*@settings[\r\n]+?([\s\S]+?)\*\//g;
 export const nameRegExp = /^name:\s*(.+)$/m;
@@ -25,6 +27,78 @@ export function getDescription<T extends Meta>(config: T): string | undefined {
 	}
 
 	return config.description;
+}
+
+/**
+ * 设置项对应的 CSS 变量名（`--<id>`）。变量类设置（`variable-*`）在 CSS 里
+ * 就是自定义属性，其它类型（heading / info-text / class-toggle …）没有变量名。
+ * 设置项 id 不保证是合法 CSS 标识符（解析阶段不校验），这里只负责拼名字，
+ * 不负责校验。
+ */
+export function getVariableName(setting: Meta): string | undefined {
+	if (!setting.type.startsWith('variable')) {
+		return undefined;
+	}
+
+	return `--${setting.id}`;
+}
+
+/**
+ * 搜索栏的候选串：本地化标题、描述，以及 id / CSS 变量名形式的别名。
+ *
+ * 变量设置的标题通常是自然语言（如「Ribbon 内边距」），变量名
+ * （`--ribbon-padding`）只出现在设置项 id 里；class-toggle 的 id 则是对应的
+ * 类名。只比对标题与描述时，按变量名搜索会一条都搜不到，因此把 id 一并纳入：
+ * 变量设置同时接受裸 id 与 `--id` 两种写法，类开关类设置接受裸 id。
+ */
+export function getSettingSearchTargets(setting: Meta): string[] {
+	const targets: string[] = [];
+
+	const title = getTitle(setting);
+	if (title) {
+		targets.push(title);
+	}
+
+	const description = getDescription(setting);
+	if (description) {
+		targets.push(description);
+	}
+
+	const variableName = getVariableName(setting);
+	if (variableName) {
+		targets.push(setting.id, variableName);
+	} else if (
+		setting.type === SettingType.CLASS_TOGGLE ||
+		setting.type === SettingType.CLASS_SELECT
+	) {
+		targets.push(setting.id);
+	}
+
+	return targets;
+}
+
+/**
+ * 在候选串中做 fuzzy 匹配，返回最高分；全部未命中返回 -Infinity
+ * （与 `AbstractSettingComponent.decisiveMatch` 的阈值约定一致）。
+ */
+export function bestFuzzyMatch(
+	query: string,
+	targets: readonly string[]
+): number {
+	let best = Number.NEGATIVE_INFINITY;
+
+	for (const target of targets) {
+		if (!target) {
+			continue;
+		}
+
+		const score = fuzzysort.single(query, target)?.score;
+		if (score !== undefined && score > best) {
+			best = score;
+		}
+	}
+
+	return best;
 }
 
 export function isValidDefaultColor(color: string) {
@@ -88,6 +162,38 @@ export function sanitizeText(str: string): string {
 	return str.replace(/[;<>]/g, '');
 }
 
+const HTML_ESCAPES: Record<string, string> = {
+	'&': '&amp;',
+	'<': '&lt;',
+	'>': '&gt;',
+	'"': '&quot;',
+	"'": '&#39;',
+};
+
+/** 转义 HTML 特殊字符（用于拼进按 innerHTML 渲染的字符串）。 */
+export function escapeHtml(str: string): string {
+	return str.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+}
+
+/**
+ * 设置元素上的 CSS 自定义属性。优先用 Obsidian 的 `setCssProps()`（插件审核
+ * 规范要求不要直接写 `element.style`；`style.setProperty` 这类调用也一并
+ * 收敛到这里），旧版 Obsidian 没有该扩展方法时退回 `style.setProperty`。
+ */
+export function setCssProps(
+	el: HTMLElement,
+	props: Record<string, string>
+): void {
+	if (typeof el.setCssProps === 'function') {
+		el.setCssProps(props);
+		return;
+	}
+
+	for (const prop of Object.keys(props)) {
+		el.style.setProperty(prop, props[prop]);
+	}
+}
+
 export function createDescription(
 	description: string | undefined,
 	def: string,
@@ -104,7 +210,7 @@ export function createDescription(
 		small.appendChild(createEl('strong', { text: `${t('Default:')} ` }));
 		small.appendChild(document.createTextNode(defLabel || def));
 
-		const div = createEl('div');
+		const div = createDiv();
 
 		div.appendChild(small);
 
@@ -150,9 +256,9 @@ const REMEASURE_DEBOUNCE_MS = 50;
  */
 export function scheduleEditorRemeasure(app: App): void {
 	if (remeasureTimer !== undefined) {
-		activeWindow.clearTimeout(remeasureTimer);
+		window.clearTimeout(remeasureTimer);
 	}
-	remeasureTimer = activeWindow.setTimeout(() => {
+	remeasureTimer = window.setTimeout(() => {
 		remeasureTimer = undefined;
 		try {
 			for (const leaf of app.workspace.getLeavesOfType('markdown')) {
@@ -189,7 +295,7 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
 	}
 
 	// Fallback for when the Clipboard API is unavailable or denied.
-	const hiddenTextarea = document.createElement('textarea');
+	const hiddenTextarea = createEl('textarea');
 	hiddenTextarea.value = text;
 	hiddenTextarea.setAttribute('readonly', '');
 	hiddenTextarea.addClass('style-settings-clipboard-helper');

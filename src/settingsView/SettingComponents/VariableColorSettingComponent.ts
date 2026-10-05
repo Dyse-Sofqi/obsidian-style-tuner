@@ -7,6 +7,7 @@ import {
 	isValidDefaultColor,
 	isValidSavedColor,
 	onPickrCancel,
+	setCssProps,
 } from '../../Utils';
 import { t } from '../../lang/helpers';
 import { AbstractSettingComponent } from './AbstractSettingComponent';
@@ -70,7 +71,7 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 				? savedColor
 				: this.setting.default;
 		const pickerEl = this.settingEl.controlEl.createDiv({ cls: 'picker' });
-		pickerEl.style.setProperty('--pcr-color', defaultColor);
+		setCssProps(pickerEl, { '--pcr-color': defaultColor });
 
 		const pickr = (this.pickr = Pickr.create(
 			getPickrSettings({
@@ -103,7 +104,7 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 
 			instance.hide();
 			instance.addSwatch(hex);
-			pickerEl.style.setProperty('--pcr-color', hex);
+			setCssProps(pickerEl, { '--pcr-color': hex });
 		});
 
 		pickr.on('show', () => {
@@ -120,7 +121,7 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 			b.onClick(() => {
 				const resetColor = this.setting.default || null;
 				pickr.setColor(resetColor);
-				pickerEl.style.setProperty('--pcr-color', resetColor || '');
+				setCssProps(pickerEl, { '--pcr-color': resetColor || '' });
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
 				this.updateModifiedState();
 			});

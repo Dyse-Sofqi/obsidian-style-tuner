@@ -1,8 +1,11 @@
 import { CSSSetting } from '../../SettingHandlers';
 import { CSSSettingsManager } from '../../SettingsManager';
-import { getDescription, getTitle, copyTextToClipboard } from '../../Utils';
+import {
+	bestFuzzyMatch,
+	copyTextToClipboard,
+	getSettingSearchTargets,
+} from '../../Utils';
 import { t } from '../../lang/helpers';
-import fuzzysort from 'fuzzysort';
 import { Component, Notice, Setting } from 'obsidian';
 import { SettingType } from './types';
 
@@ -16,6 +19,8 @@ export abstract class AbstractSettingComponent extends Component {
 	isView: boolean;
 	/** Rendered row element; populated by concrete components in render(). */
 	settingEl?: Setting;
+	/** 搜索候选串缓存（标题 / 描述 / 变量名），每次输入都要重算，故只构造一次。 */
+	private searchTargets: string[] | null = null;
 
 	constructor(
 		parent: AbstractSettingComponent | HTMLElement,
@@ -138,6 +143,9 @@ export abstract class AbstractSettingComponent extends Component {
 	/**
 	 * Matches the Component against `str`. A perfect match returns 0, no match returns negative infinity.
 	 *
+	 * 除标题与描述外，还会匹配设置项 id 与 CSS 变量名（`--id`），
+	 * 这样按变量名（例如 `--ribbon-padding`）也能搜到设置项。
+	 *
 	 * @param str the string to match this Component against.
 	 */
 	match(str: string): number {
@@ -145,13 +153,11 @@ export abstract class AbstractSettingComponent extends Component {
 			return Number.NEGATIVE_INFINITY;
 		}
 
-		const title = getTitle(this.setting);
-		const description = getDescription(this.setting) || '';
+		if (!this.searchTargets) {
+			this.searchTargets = getSettingSearchTargets(this.setting);
+		}
 
-		return Math.max(
-			fuzzysort.single(str, title)?.score ?? Number.NEGATIVE_INFINITY,
-			fuzzysort.single(str, description)?.score ?? Number.NEGATIVE_INFINITY
-		);
+		return bestFuzzyMatch(str, this.searchTargets);
 	}
 
 	/**

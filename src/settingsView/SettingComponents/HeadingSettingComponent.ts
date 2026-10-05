@@ -181,6 +181,11 @@ export function buildSettingComponentTree(opts: {
 	return root;
 }
 
+/** 搜索结果的计数文案（本地化，`{{count}}` 占位符）。 */
+function resultCountLabel(count: number): string {
+	return t('{{count}} Results').replace('{{count}}', String(count));
+}
+
 export class HeadingSettingComponent extends AbstractSettingComponent {
 	setting: Heading;
 	settingEl: Setting;
@@ -216,10 +221,7 @@ export class HeadingSettingComponent extends AbstractSettingComponent {
 		this.resultsEl = this.settingEl.nameEl.createSpan({
 			cls: 'style-settings-filter-result-count',
 			text: this.filterMode
-				? t('{{count}} Results').replace(
-						'{{count}}',
-						String(this.filterResultCount)
-					)
+				? resultCountLabel(this.filterResultCount)
 				: undefined,
 		});
 
@@ -270,7 +272,7 @@ export class HeadingSettingComponent extends AbstractSettingComponent {
 			this.setCollapsed(true);
 		}
 		this.renderChildren();
-		this.resultsEl?.setText(`${this.filterResultCount} Results`);
+		this.resultsEl?.setText(resultCountLabel(this.filterResultCount));
 
 		return this.filterResultCount;
 	}

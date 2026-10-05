@@ -47,6 +47,7 @@ export const zh = {
 
 	// Export modal section picker
 	'Sections': '区块',
+	'All customized values of the checked sections.': '已勾选区块的全部自定义值。',
 	'Uncheck all': '全部取消勾选',
 	'Check all': '全部勾选',
 	'Only checked sections are included in the exported configuration.':

@@ -4,6 +4,59 @@
 
 ---
 
+## 1.1.1 (2026-10-05)
+
+本轮把 1.0.8 之后的全部工作（变量名搜索、导出弹窗重做、工具栏布局、审核合规）合并为一个版本发布。
+
+### 新增功能
+
+- **搜索栏支持按 CSS 变量名 / 设置项 id 搜索** — 此前只拿标题与描述做模糊匹配，而变量名只存在于设置项 `id` 里（标题是「功能区内边距」这类自然语言，不含 `--ribbon-padding`），所以输入 `--ribbon-padding` 一条结果都搜不到。现在把 id 纳入搜索候选：
+  - 变量设置（`variable-*`）同时接受 `ribbon-padding` 与 `--ribbon-padding` 两种写法；
+  - 类开关 / 类下拉（`class-toggle` / `class-select`）接受其类名 id（如 `wide-tables`）；
+  - 标题、描述照旧参与匹配，命中后的结果计数与自动展开行为不变；候选串在组件里缓存一次，输入时不重复构造；
+  - 变量名同时追加进 Settings Search 插件的注册描述（该插件的模糊匹配同时比对 `text` 与 `desc`），在它的全局设置搜索里也能按变量名命中。
+- **导出弹窗重做：左右两栏 + 更大尺寸 + 更合理的默认勾选** — 此前区块列表与导出内容上下堆叠，弹窗沿用 Obsidian 默认的 560px 对话框宽度、高度只有 70vh，稍长一点的配置只能看到几行。现在：
+  - 弹窗宽度跟随设置面板的 `--ss-modal-width`（`min(1180px, 96vw)`，见 `beautify.css`），高度 `min(760px, 88vh)`；导入弹窗共用这套尺寸，粘贴框同样受益。
+  - **左栏 = 区块**：标题与说明、可滚动的区块列表（分组标题吸顶、已勾选区块带一层极淡强调色、来源未启用的区块保留徽标与计数），底部为「全部勾选 / 全部取消勾选 + 已选 n / m」。
+  - **右栏 = 导出内容**：标题与说明、撑满剩余高度的等宽配置框，底部右侧为「复制到剪贴板 / 下载」。
+  - **默认只勾选「当前启用」的区块**：来源未启用的主题 / 片段留下的残留配置不再默认导出（一个启用中的区块都没有时退回全选，避免一打开就是空导出）。
+  - 单区块导出没有可勾选的区块，输出栏独占整宽；窄容器下两栏自动改为上下堆叠、区块列表限高。
+
+### 变更
+
+- **弹窗里的「文字按钮」改成 Obsidian 原生按钮** — 导出弹窗底部的「全部勾选」「复制到剪贴板」「下载」以及导入弹窗的「从文件导入」此前是蓝色下划线文字链接（看着像按钮的纯文本），现在统一改用 `ButtonComponent`（样式来自 `app.css` 的原生按钮）；下载改为点击时才生成数据链接，复制成功时按钮闪一下绿色。
+- **CSS 片段页的两个操作改成图标按钮** — 「打开样式代码片段文件夹」与「刷新」改为 lucide 图标按钮（`folder-open` / `refresh-cw`，与工具栏的导入 / 导出同款 `clickable-icon`），动作说明移到 tooltip，标题行只剩「N 个 CSS 片段」。
+- **工具栏自适应重排** — 外观控件的间隙收紧（列间距 24px → 14px、「标签 + 下拉」6px → 4px、与图标按钮 8px → 6px）；两个下拉不再被拆到两行；空间不足时整行换行（搜索框独占一行）；容器窄到 Obsidian 把设置行改成纵向时，两个控件各占一行。
+- **界面文案** — 新增「已勾选区块的全部自定义值。」（`All customized values of the checked sections.`，其余语言回退英文）；导出范围标题不再多一个空格（中文等以全角冒号结尾的标签此前会拼成「导出设置： 全部设置」）。
+- **命令 id 规范化** — `show-style-tuner-leaf` → `show-view`（Obsidian 已用插件 id 做命名空间，命令显示名不变）。**如果你为该命令绑过快捷键，需要在「快捷键」里重新绑一次。**
+- **README 完善中英双语功能说明** — 中文与英文条目一一对应，补齐变量名搜索、导出弹窗布局、图标按钮、窄容器适配、审核合规等本轮能力。
+
+### 修复
+
+- **搜索栏按变量名搜不到设置项** — 见上方「新增功能」第一条。
+- **搜索结果计数文案未本地化** — 过滤时固定输出英文 `N Results`，而首次渲染走的是 `t('{{count}} Results')`；现统一走本地化字符串（中文界面显示「1 项结果」）。
+- **CSS 片段变多后工具栏被挤成两行** — 根因是设置页内容区出现垂直滚动条时窄了十几像素，正好把「颜色模式 / 主题」两个下拉拆开换行。修法是给两个入口都预留滚动条宽度（`scrollbar-gutter: stable`；设置页用 `:has(.style-settings-panel)` 只作用于 Style Tuner 标签页，独立视图只作用于自身 `.view-content`），再配合上面的间隙收紧与整行换行，列表长短变化不再影响工具栏排版。
+
+### 插件审核复查（obsidianmd/eslint-plugin `recommended`）
+
+用官方 `eslint-plugin-obsidianmd@0.4.2` 的 `recommended` 配置（39 条 Obsidian 专项规则 + 类型检查规则）对本仓库 `src/**` 做了一轮复查：**error 级规则全部通过**，并修掉以下问题：
+
+- **直接设置元素样式**（`no-static-styles-assignment` 指向的那类写法）— `<body>` 上应用 CSS 变量、取色器的 `--pcr-color` 共 8 处 `style.setProperty(...)`，统一收敛到新的 `setCssProps()` 辅助函数：优先调用 Obsidian 的 `element.setCssProps()`，老版本没有该扩展方法时才退回 `style.setProperty`，同时把 N 次样式写入合并成一次。变量的**移除**仍用 `removeProperty`——`setCssProps` 只能“设置”，把值设成空串会留下空的 `--x:` 内联声明，反过来盖住主题自己的同名变量。
+- **`onunload` 里 `detachLeavesOfType`**（`detach-leaves`，error 级）— 已移除：插件卸载时 Obsidian 会自行清理本插件注册的视图叶子，手动摘叶子会把用户的工作区布局一起重置；视图重开路径（`activateView`）里的清理保持不变。
+- **`document.createElement`**（`prefer-create-el`）— 剪贴板回退用的隐藏 `textarea`、导出下载用的临时 `a`、以及 `createEl('div')` 共 3 处改为 Obsidian 的 `createEl` / `createDiv`。
+- **定时器作用域**（`prefer-window-timers`）— `parseCSS` 的防抖、编辑器重测防抖、复制按钮的成功态复位共 3 处改用 `window.setTimeout` / `window.clearTimeout`。
+- **命令 id 带插件 id**（`commands/no-plugin-id-in-command-id`）— 见上「变更」。
+
+复查后仍保留的告警（均为 warn，且已确认是有意为之）：
+
+- `prefer-window-timers`：取色器 `show` 时那段 `activeWindow.requestAnimationFrame` 双击是为 popout 窗口里的选择框定位服务的，改用 `window` 会取到主窗口的帧回调，故保留。
+- `prefer-get-language`：`lang/helpers.ts` 继续读 localStorage 的 `language` 键——本插件 `minAppVersion` 为 1.5.0，而 `getLanguage()` 是较新的 API（当前 `obsidian@1.6.6` 类型定义里还没有它），静态引入会让老版本直接报错，也会让单测里的 `obsidian` 解析失败；两者取值一致，代码里已注明原因。
+- `settings-tab/prefer-setting-definitions`：Obsidian 1.13 起的新声明式设置 API，需要把 `minAppVersion` 抬到 1.13 才能用，本轮不动。
+- `ui/sentence-case`：`getDisplayText()` 返回品牌名「Style Tuner」，不改成「Style tuner」。
+- `hardcoded-config-path` / `no-global-this`：全部落在测试文件（`AppearanceManager.test.ts` 的 `.obsidian` fixture、三个测试的 `window` mock），不进打包产物。
+
+---
+
 ## 1.0.8 (2026-10-05)
 
 ### 新增功能

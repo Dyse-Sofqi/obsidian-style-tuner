@@ -64,34 +64,109 @@
 }
 
 /* ============================================================
-   Export modal: per-section picker
+   Export modal: 左栏区块勾选 + 右栏导出内容
    ============================================================ */
+
+.style-settings-export-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    /* 左栏放区块名 + 徽标 + 计数，够用即可；右栏吃掉剩余宽度 */
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 20px;
+}
+
+/* 单区块导出：没有可勾选的区块，输出栏独占整宽 */
+.style-settings-export-body.is-output-only {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.style-settings-export-pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.style-settings-pane-header {
+    flex: 0 0 auto;
+    /* 与左栏「标题 + 说明」两行等高，左右两栏的内容起点才能对齐 */
+    min-height: 52px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.style-settings-pane-title {
+    font-size: var(--font-ui-medium);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-normal);
+    overflow-wrap: anywhere;
+}
+
+.style-settings-pane-desc {
+    margin-top: 3px;
+    font-size: var(--font-ui-smaller);
+    line-height: 1.45;
+    color: var(--text-muted);
+}
+
+/* ---- 右栏：标题 + 撑满高度的配置框 + 底部操作 ---- */
+
+/* 标题右侧留出弹窗关闭按钮的位置（它是绝对定位在右上角的） */
+.style-settings-export-pane.is-output .style-settings-pane-title {
+    padding-inline-end: 26px;
+}
+
+/* 导出弹窗的底部操作：按钮本身用 Obsidian 原生样式，这里只管排布 */
+.style-settings-output-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 10px 2px 0;
+    white-space: nowrap;
+}
+
+.style-settings-export-textarea {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+}
+
+/* ---- 左栏：可滚动的区块列表 ---- */
 
 .style-settings-export-sections {
     --ssx-border: var(--background-modifier-border);
-    border: 1px solid var(--ssx-border);
-    border-radius: 8px;
-    background: var(--background-secondary);
-    padding: 4px;
-    max-height: 300px;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1px 12px;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    border: 1px solid var(--ssx-border);
+    border-radius: var(--radius-m, 6px);
+    background: var(--background-secondary);
 }
 
+/* 分组标题吸顶：长列表里始终知道在看「当前启用 / 来源未启用」 */
 .style-settings-export-group-heading {
-    grid-column: 1 / -1;
+    position: sticky;
+    /* 抵消列表容器的 6px 内边距，吸顶时不露缝隙 */
+    top: -6px;
+    z-index: 1;
     font-size: 0.72em;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-faint);
-    padding: 10px 8px 4px;
-    margin-top: 2px;
+    padding: 8px 8px 4px;
+    background: var(--background-secondary);
     border-bottom: 1px solid var(--ssx-border);
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 
 .style-settings-export-section {
@@ -103,26 +178,31 @@
 .style-settings-export-section label {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     width: 100%;
     min-width: 0;
-    padding: 4px 8px;
-    border-radius: 6px;
+    padding: 5px 8px;
+    border-radius: var(--radius-s, 4px);
     cursor: pointer;
     color: var(--text-normal);
     transition: background 120ms ease;
 }
 
-.style-settings-export-section label:hover {
-    background: var(--background-modifier-hover);
-}
-
+/* 已勾选（会进入导出的）区块给一层极淡的强调色，导出范围一眼可见 */
 .style-settings-export-section label:has(input:checked) {
     color: var(--text-normal);
+    background: var(--background-modifier-hover); /* color-mix 回退 */
+    background: color-mix(in srgb, var(--text-accent) 10%, transparent);
 }
 
 .style-settings-export-section label:has(input:not(:checked)) {
     color: var(--text-faint);
+    background: none;
+}
+
+/* :has() 的权重比 :hover 高，悬停底色必须写在后面才压得住上面的勾选态 */
+.style-settings-export-section label:hover {
+    background: var(--background-modifier-hover);
 }
 
 .style-settings-export-section input[type='checkbox'] {
@@ -164,16 +244,12 @@
 }
 
 .style-settings-export-toggle {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 7px 8px 4px;
-}
-
-.style-settings-export-toggle-all {
-    font-weight: 500;
-    font-size: 0.85em;
+    padding: 10px 2px 0;
 }
 
 .style-settings-export-summary {
@@ -182,18 +258,62 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Export modal: tighter modal layout, separated output area */
+/* ============================================================
+   Plugin modals (export / import)
+   ============================================================ */
+
+/* 导出 / 导入都要装大段配置文本，Obsidian 默认 560px 对话框太窄。
+   宽度跟随 --ss-modal-width（与设置面板同一个变量，见 beautify.css），
+   两处入口的宽度始终一致，要调只改那一个值。 */
+.modal-style-settings {
+    width: var(--ss-modal-width, min(1180px, 96vw));
+    max-width: var(--ss-modal-width, min(1180px, 96vw));
+    height: min(760px, 88vh);
+    max-height: min(760px, 88vh);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-style-settings .modal-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .modal-style-settings .style-settings-copy,
 .modal-style-settings .style-settings-download {
     font-weight: 500;
 }
 
-.modal-style-settings .modal-style-settings-textarea textarea,
-.modal-style-settings textarea {
+/* 导入弹窗：粘贴框是 contentEl 的直接子元素，撑满剩余高度 */
+.modal-style-settings > .modal-content > textarea {
+    flex: 1 1 auto;
     min-height: 220px;
     resize: vertical;
     font-family: var(--font-monospace);
     font-size: 0.85em;
+}
+
+/* 导出弹窗：配置框等宽、等宽字体、只在自身内部滚动 */
+.modal-style-settings .style-settings-export-textarea textarea {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 10px 12px;
+    resize: none;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m, 6px);
+    background: var(--background-secondary);
+    font-family: var(--font-monospace);
+    font-size: 0.85em;
+    line-height: 1.5;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
 }
 
 .modal-style-settings .setting-item {
@@ -203,6 +323,19 @@
 
 .modal-style-settings .setting-item-name {
     overflow-wrap: anywhere;
+}
+
+/* 窄屏（移动端 / 侧栏）：两栏改为上下堆叠，区块列表限高后输出栏吃掉剩余高度 */
+@media (max-width: 720px) {
+    .style-settings-export-body {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .style-settings-export-pane.is-sections {
+        max-height: 40vh;
+    }
 }
 
 .style-settings-error {
@@ -243,69 +376,20 @@
     z-index: -1;
 }
 
-.style-settings-import-label {
-    cursor: pointer;
-    color: var(--text-accent);
-    text-decoration: underline;
-}
-
-.style-settings-import-label:hover {
-    color: var(--text-accent-hover);
-}
-
-/* 导入 / 导出：Obsidian 原生图标按钮（clickable-icon），无需额外链接样式 */
-
-.style-settings-copy,
-.style-settings-download {
-    position: relative;
-    display: inline-block;
-    margin-left: 10px;
-}
-
-.style-settings-copy:before {
-    color: var(--interactive-success);
-    content: "✓";
-    position: absolute;
-    left: -18px;
-    font-weight: bold;
-    opacity: 0;
-    transition: 150ms opacity ease-in-out;
-}
-
-.style-settings-copy.success:before {
-    opacity: 1;
-}
-
-.modal-style-settings {
-    height: 70vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-style-settings .modal-content {
-    flex-grow: 1;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-style-settings textarea {
-    display: block;
-    width: 100%;
-    height: 100%;
-    font-family: var(--font-monospace) !important;
-    font-size: 12px;
-    white-space: pre;
-    overflow-wrap: normal;
-    overflow-x: scroll;
-    margin-bottom: 5px;
+/* 导出弹窗底部的操作（全选 / 复制 / 下载）都是 Obsidian 原生 ButtonComponent，
+   观感交给 app.css；这里只补「复制成功」的状态反馈 */
+.modal-style-settings .style-settings-copy.success {
+    color: var(--text-on-accent);
+    background-color: var(--color-green);
 }
 
 .modal-style-settings .setting-item {
     align-items: flex-start;
 }
 
-.modal-style-settings button {
+/* 导入弹窗的「保存」按钮是 contentEl 的直接子元素（flex 列会把它拉满宽度），
+   这里只补上方间距；导出弹窗的按钮在各自的行里，不受这条影响 */
+.modal-style-settings > .modal-content > button {
     margin: 10px 0 0;
 }
 

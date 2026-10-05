@@ -55,6 +55,9 @@ export class SettingsPanel extends Component {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		// 供 CSS 定位用（设置页里为滚动条预留 gutter 的 :has() 钩子）
+		containerEl.addClass('style-settings-panel');
+
 		// ---- 工具栏：搜索框 + 外观控件 + 导入导出（标签栏上方，脱离页面内容）----
 		this.toolbarEl = containerEl.createDiv({
 			cls: 'style-settings-toolbar',
@@ -180,18 +183,22 @@ export class SettingsPanel extends Component {
 			t('{{count}} CSS snippets').replace('{{count}}', String(snippets.length))
 		);
 
-		// 打开片段文件夹：移动端没有系统文件管理器可打开，仅在桌面端提供
+		// 打开片段文件夹 / 刷新：lucide 图标按钮（与工具栏的导入导出按钮同款
+		// clickable-icon），动作说明放 tooltip。
+		// 移动端没有系统文件管理器可打开，打开文件夹仅在桌面端提供。
 		if (Platform.isDesktopApp) {
-			header.addButton((button) =>
+			header.addExtraButton((button) =>
 				button
-					.setButtonText(t('Open snippets folder'))
+					.setIcon('folder-open')
+					.setTooltip(t('Open snippets folder'))
 					.onClick(() => void this.openSnippetsFolder())
 			);
 		}
 
-		header.addButton((button) =>
+		header.addExtraButton((button) =>
 			button
-				.setButtonText(t('Refresh'))
+				.setIcon('refresh-cw')
+				.setTooltip(t('Refresh'))
 				.onClick(() => void this.renderSnippets())
 		);
 

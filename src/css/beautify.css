@@ -39,6 +39,24 @@
   max-width: 100%;
 }
 
+/* Reserve the vertical scrollbar gutter, so that the content width does not
+   change when the snippet list grows past the viewport. Without it the toolbar
+   row loses ~15px exactly when the scrollbar appears, which used to push the
+   appearance dropdowns onto a second row.
+   Scoped to Style Tuner's own panel (and its own view) only. */
+.modal-settings .vertical-tab-content:has(.style-settings-panel),
+.modal.mod-settings .vertical-tab-content:has(.style-settings-panel) {
+  scrollbar-gutter: stable;
+}
+
+/* The standalone view is the plugin's own root: same gutter reservation, plus
+   a container-query context so the narrow-container rules below also apply
+   there (the settings modal gets one from Obsidian's .vertical-tab-content). */
+.view-content.style-settings-view {
+  scrollbar-gutter: stable;
+  container-type: inline-size;
+}
+
 /* The Style Tuner standalone view takes the full width too */
 .workspace-leaf-content[data-type="style-settings"] .view-content,
 .workspace-leaf-content[data-type="style-settings"] .view-content > div,
@@ -393,25 +411,63 @@
   padding-bottom: 12px;
 }
 
+/* 工具栏那一行：窄到放不下时整行换行（搜索框独占一行，外观控件 + 导入导出
+   落到第二行），而不是把外观控件挤窄、让标签在控件内部折行。
+   判断依据是这一行自己的可用宽度：设置页里滚动条出现、独立视图被拖窄，
+   都能正确触发。 */
+.style-settings-toolbar .setting-item {
+  flex-wrap: wrap;
+}
+
+.style-settings-toolbar .setting-item-info {
+  /* 搜索框至少留 160px 宽：放不下时整行换行（上面的 flex-wrap），由搜索框
+     独占一行。这里用 min-width 而不是 flex-basis——Obsidian 的容器查询
+     (@container (max-width: 400px)) 会把设置行改成纵向，那时 flex-basis
+     会变成高度基准，把搜索框撑成一大块空白。 */
+  flex: 1 1 auto;
+  min-width: 160px;
+}
+
+.style-settings-toolbar .setting-item-control {
+  /* 外观控件 + 两个图标按钮不压缩 */
+  flex: 0 0 auto;
+}
+
 /* ---- Toolbar row: appearance dropdowns between search and import/export ---- */
 
 .style-settings-appearance-controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 24px;
+  /* 两个下拉永远同排：宽度不够时让搜索框收缩，而不是把下拉拆到第二行。
+     设置页内容区出现垂直滚动条时宽度会少十几像素，正好够触发换行。 */
+  flex-wrap: nowrap;
+  gap: 4px 14px;
   align-items: center;
-  margin-right: 8px;
+  margin-right: 6px;
+}
+
+/* 容器极窄时（Obsidian 自己会把设置行改成纵向堆叠，见 app.css 里的
+   @container (max-width: 400px)）放宽外观控件：让两个控件各占一行，
+   而不是被压在一起。设置页的容器上下文来自 .vertical-tab-content，
+   独立视图来自上面的 .view-content.style-settings-view。 */
+@container (max-width: 400px) {
+  .style-settings-appearance-controls {
+    flex-wrap: wrap;
+  }
 }
 
 .style-settings-appearance-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  /* 控件本身不压缩：否则被挤窄后「颜色模式」这类标签会在控件内部折行，
+     看起来仍然是两行 */
+  flex: 0 0 auto;
 }
 
 .style-settings-appearance-label {
   font-size: var(--font-ui-small);
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* ---- Tab bar ----

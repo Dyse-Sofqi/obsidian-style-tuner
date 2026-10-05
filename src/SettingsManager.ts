@@ -17,7 +17,11 @@ import {
 } from './SettingHandlers';
 import CSSSettingsPlugin from './main';
 import { SettingType } from './settingsView/SettingComponents/types';
-import { isValidSavedColor, scheduleEditorRemeasure } from './Utils';
+import {
+	isValidSavedColor,
+	scheduleEditorRemeasure,
+	setCssProps,
+} from './Utils';
 import { ExportSectionOption } from './ExportModal';
 import chroma from 'chroma-js';
 
@@ -548,16 +552,23 @@ export class CSSSettingsManager {
 	}
 
 	private applyVariables(kvs: VariableKV): void {
-		const style = document.body.style;
+		// 用 Obsidian 的 setCssProps 而不是直接写 document.body.style
+		// （插件审核规范：不要直接设置元素样式）。一次性写入所有变量，
+		// 也顺带把 N 次样式变更合并成一次。
+		const props: Record<string, string> = {};
 		for (const { key, value } of kvs) {
 			const prop = `--${key}`;
-			style.setProperty(prop, value);
+			props[prop] = value;
 			this.appliedVarKeys.add(prop);
 		}
+
+		setCssProps(document.body, props);
 		scheduleEditorRemeasure(this.plugin.app);
 	}
 
 	private clearAppliedVariables(): void {
+		// 这里只能逐个 removeProperty：setCssProps 只会“设置”，把值设成空串
+		// 会留下一条空的 `--x:` 内联声明，反过来盖住主题自己的同名变量。
 		const style = document.body.style;
 		for (const prop of this.appliedVarKeys) {
 			style.removeProperty(prop);
