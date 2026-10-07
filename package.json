@@ -1,6 +1,6 @@
 {
   "name": "style-tuner",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Fine-tune theme, snippet, and third-party CSS variables with configurable controls, plus a built-in markdown linter with 66 formatting rules.",
   "main": "main.js",
   "scripts": {
