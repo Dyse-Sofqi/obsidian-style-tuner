@@ -6,7 +6,7 @@
 
 ## 1.2.1 (2026-10-07)
 
-对 1.2.0 内置 Linter 的整理与界面优化，无规则行为变化；并补做了一轮插件审核复查。
+对 1.2.0 内置 Linter 的整理与界面优化，无规则行为变化；并补做了一轮插件审核复查，修掉社区审核驳回的插件描述。
 
 ### 新增功能
 
@@ -23,6 +23,11 @@
 
 ### 错误修复
 
+- **插件描述含审核禁用词，社区插件审核被驳回** — `manifest.json` 的 `description` 原文是 `Fine-tune theme, plugin, and snippet CSS variables with configurable controls, plus markdown linting/formatting ported from obsidian-linter.`，踩了两个坑：
+  1. 官方 `eslint-plugin-obsidianmd` 的 `validate-manifest` 规则把 `obsidian`、`plugin` 两个词列为**大小写不敏感**的禁用词，`name` / `description` / `id` 三处都不允许出现——原文里 `plugin` 和 `obsidian-linter` 各命中一次（审核只报了 Obsidian 那条，但 `plugin` 同样不合规）；
+  2. `description` 的字符集限定为 ASCII 字母、数字、空白与 `. , ! ? ' " -`，原文 `linting/formatting` 里的 `/` 不合规（`validate-manifest` 用 `else if` 串联判定，禁用词命中时不会再报格式问题，所以这条本来会在**下一轮**审核才暴露）。
+
+  现改为：`Fine-tune theme, snippet, and third-party CSS variables with configurable controls, plus a built-in markdown linter with 66 formatting rules.`（141 字符，以大写字母开头、以句号结尾，无禁用词、无非法字符）。`package.json` 里的同一段描述一并同步。
 - 修正调试分组中「Linter 配置」的描述文案：数据文件名由过时的 `data.json` 更正为 `data-linter.json`（1.2.0 起 Linter 设置独立存放于该文件，描述未同步）。
 
 ### 文档

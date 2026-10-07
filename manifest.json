@@ -3,7 +3,7 @@
 	"name": "Style Tuner",
 	"version": "1.2.1",
 	"minAppVersion": "1.13.0",
-	"description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls, plus markdown linting/formatting ported from obsidian-linter.",
+	"description": "Fine-tune theme, snippet, and third-party CSS variables with configurable controls, plus a built-in markdown linter with 66 formatting rules.",
 	"author": "Sofqi",
 	"authorUrl": "https://github.com/Dyse-Sofqi",
 	"fundingUrl": "https://github.com/Dyse-Sofqi/ziping/blob/main/zanshang.jpg",

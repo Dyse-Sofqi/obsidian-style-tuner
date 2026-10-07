@@ -1,7 +1,7 @@
 {
   "name": "style-tuner",
   "version": "1.2.1",
-  "description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls, plus markdown linting/formatting ported from obsidian-linter.",
+  "description": "Fine-tune theme, snippet, and third-party CSS variables with configurable controls, plus a built-in markdown linter with 66 formatting rules.",
   "main": "main.js",
   "scripts": {
     "typecheck": "tsc --noemit",
