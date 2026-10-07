@@ -1,12 +1,36 @@
 import CSSSettingsPlugin from '../main';
 import { SettingsMarkup } from './SettingsMarkup';
+import { DefinitionsRenderer } from './DefinitionsRenderer';
 import { SnippetInfo } from '../AppearanceManager';
 import { t } from '../lang/helpers';
 import { ParsedCSSSettings } from '../SettingHandlers';
 import { ErrorList } from '../Utils';
 import { App, Component, Notice, Platform, Setting } from 'obsidian';
+import { RuleType } from '../linter/rules';
 
-type TabKey = 'settings' | 'snippets';
+type TabKey =
+	| 'settings'
+	| 'format'
+	| 'snippets'
+	| 'rule-yaml'
+	| 'rule-content'
+	| 'rule-spacing'
+	| 'rule-custom';
+
+type LinterSettingsTab = NonNullable<CSSSettingsPlugin['linter']>['settingsTab'];
+
+/** 由 linter 声明式设置定义驱动的标签页（顺序即标签组顺序）。 */
+const LINTER_TABS: {
+	key: TabKey;
+	labelKey: Parameters<typeof t>[0];
+	getDefs: (tab: LinterSettingsTab) => any[];
+}[] = [
+	{ key: 'format', labelKey: 'Format', getDefs: (tab) => tab.getFormatDefinitions() },
+	{ key: 'rule-yaml', labelKey: 'YAML Rules', getDefs: (tab) => tab.getRuleCategoryDefinitions(RuleType.YAML) },
+	{ key: 'rule-content', labelKey: 'Content Rules', getDefs: (tab) => tab.getContentRulesDefinitions() },
+	{ key: 'rule-spacing', labelKey: 'Blank-line Rules', getDefs: (tab) => tab.getRuleCategoryDefinitions(RuleType.SPACING) },
+	{ key: 'rule-custom', labelKey: 'Custom Rules', getDefs: (tab) => tab.getCustomRulesDefinitions() },
+];
 
 /**
  * Style Tuner 的完整界面：工具栏（搜索 / 外观控件 / 导入导出）+ 标签页
@@ -33,10 +57,14 @@ export class SettingsPanel extends Component {
 	private toolbarEl: HTMLElement;
 	private tabsEl: HTMLElement;
 	private tabSettingsEl: HTMLElement;
+	private tabFormatEl: HTMLElement;
 	private tabSnippetsEl: HTMLElement;
+	private tabEls: Record<TabKey, HTMLElement>;
 	private navItemEls: Record<TabKey, HTMLElement>;
 	/** 片段列表刷新序号：并发刷新时丢弃过期结果（见 renderSnippets） */
 	private snippetsGeneration = 0;
+	/** linter 定义变化订阅（格式化 / 规则分类标签页共用），卸载时解绑 */
+	private formatUnlisten: (() => void) | null = null;
 
 	constructor(
 		app: App,
@@ -68,17 +96,27 @@ export class SettingsPanel extends Component {
 		this.navItemEls = {
 			settings: this.buildNavItem(t('Style Settings'), 'settings'),
 			snippets: this.buildNavItem(t('CSS Snippets'), 'snippets'),
-		};
-
-		// ---- 标签页内容 ----
-		this.tabSettingsEl = containerEl.createDiv({
-			cls: 'style-settings-tab is-active',
-			attr: { 'data-tab': 'settings' },
-		});
-		this.tabSnippetsEl = containerEl.createDiv({
-			cls: 'style-settings-tab',
-			attr: { 'data-tab': 'snippets' },
-		});
+		} as unknown as Record<TabKey, HTMLElement>;
+		this.tabEls = {
+			settings: containerEl.createDiv({
+				cls: 'style-settings-tab is-active',
+				attr: { 'data-tab': 'settings' },
+			}),
+			snippets: containerEl.createDiv({
+				cls: 'style-settings-tab',
+				attr: { 'data-tab': 'snippets' },
+			}),
+		} as unknown as Record<TabKey, HTMLElement>;
+		for (const lt of LINTER_TABS) {
+			this.navItemEls[lt.key] = this.buildNavItem(t(lt.labelKey), lt.key);
+			this.tabEls[lt.key] = containerEl.createDiv({
+				cls: 'style-settings-tab',
+				attr: { 'data-tab': lt.key },
+			});
+		}
+		this.tabSettingsEl = this.tabEls.settings;
+		this.tabSnippetsEl = this.tabEls.snippets;
+		this.tabFormatEl = this.tabEls.format;
 
 		this.settingsMarkup = this.addChild(
 			new SettingsMarkup(
@@ -114,6 +152,10 @@ export class SettingsPanel extends Component {
 
 	onunload(): void {
 		this.settingsMarkup = null;
+		if (this.formatUnlisten) {
+			this.formatUnlisten();
+			this.formatUnlisten = null;
+		}
 	}
 
 	rerender(): void {
@@ -142,15 +184,56 @@ export class SettingsPanel extends Component {
 	}
 
 	private switchTab(key: TabKey): void {
-		const settingsActive = key === 'settings';
-		this.tabSettingsEl.toggleClass('is-active', settingsActive);
-		this.tabSnippetsEl.toggleClass('is-active', !settingsActive);
-		this.navItemEls.settings.toggleClass('is-active', settingsActive);
-		this.navItemEls.snippets.toggleClass('is-active', !settingsActive);
+		for (const k of Object.keys(this.tabEls) as TabKey[]) {
+			const active = k === key;
+			this.tabEls[k].toggleClass('is-active', active);
+			this.navItemEls[k].toggleClass('is-active', active);
+		}
 
 		// 首次切换到片段标签时再加载列表
-		if (!settingsActive && !this.tabSnippetsEl.hasChildNodes()) {
+		if (key === 'snippets' && !this.tabSnippetsEl.hasChildNodes()) {
 			void this.renderSnippets();
+		}
+
+		// linter 驱动的标签页：每次进入都按最新设置重建
+		const linterTab = LINTER_TABS.find((lt) => lt.key === key);
+		if (linterTab) {
+			this.renderLinterTab(linterTab);
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// 格式化 / 规则分类标签页（linter 声明式设置定义）
+	// ------------------------------------------------------------------
+
+	private renderLinterTab(linterTab: (typeof LINTER_TABS)[number]): void {
+		const settingsTab = this.plugin.linter?.settingsTab;
+		const container = this.tabEls[linterTab.key];
+		container.empty();
+
+		if (!settingsTab?.getFormatDefinitions) {
+			// linter 尚未就绪（极端时序）；留空，下次进入标签页再渲染
+			return;
+		}
+
+		new DefinitionsRenderer(container, settingsTab, () => {
+			// 定义集合变化（列表增删 / 控件写回联动）→ 重建当前标签页
+			if (container.hasClass('is-active')) {
+				this.renderLinterTab(linterTab);
+			}
+		}).render(linterTab.getDefs(settingsTab));
+
+		// 监听只注册一次：若每次渲染都解绑重绑，update() 的监听遍历会把
+		// 新注册的监听器在同一轮里再次执行，造成无限重渲染（应用卡死）。
+		// 监听回调重建当前**激活中**的 linter 驱动标签页（开关联动 / 列表增删）。
+		if (!this.formatUnlisten && settingsTab.onFormatChange) {
+			this.formatUnlisten = settingsTab.onFormatChange(() => {
+				for (const lt of LINTER_TABS) {
+					if (this.tabEls[lt.key].hasClass('is-active')) {
+						this.renderLinterTab(lt);
+					}
+				}
+			});
 		}
 	}
 
@@ -218,8 +301,14 @@ export class SettingsPanel extends Component {
 			return;
 		}
 
+		// 片段行合并进一张卡片（Obsidian 原生 setting-group 结构）：
+		// 标题行留在卡片外，片段行放进 .setting-items，行间分隔线由
+		// Obsidian 原生样式（.setting-group .setting-item::before）绘制。
+		const snippetCard = tabSnippetsEl.createDiv({ cls: 'setting-group' });
+		const snippetItems = snippetCard.createDiv({ cls: 'setting-items' });
+
 		for (const snippet of snippets) {
-			new Setting(tabSnippetsEl).setName(snippet.name).addToggle((toggle) => {
+			new Setting(snippetItems).setName(snippet.name).addToggle((toggle) => {
 				toggle.setValue(snippet.enabled);
 				toggle.onChange(async (value) => {
 					try {

@@ -25,12 +25,15 @@ import '@simonwep/pickr/dist/themes/nano.min.css';
 import detectIndent from 'detect-indent';
 import yaml from 'js-yaml';
 import { AppearanceManager } from './AppearanceManager';
+import LinterPlugin from './linter/main';
 import { Command, Plugin } from 'obsidian';
 
 export default class CSSSettingsPlugin extends Plugin {
 	settingsManager: CSSSettingsManager;
 	appearanceManager: AppearanceManager;
 	settingsTab: CSSSettingsTab;
+	// obsidian-linter (MIT, see src/linter/LICENSE) hosted inside this plugin
+	linter: LinterPlugin;
 	settingsList: ParsedCSSSettings[] = [];
 	errorList: ErrorList = [];
 	commandList: Command[] = [];
@@ -82,6 +85,12 @@ export default class CSSSettingsPlugin extends Plugin {
 		document.body.classList.add('css-settings-manager');
 
 		this.parseCSS();
+
+		// obsidian-linter core (MIT by Victor Tao, see src/linter/LICENSE) is
+		// hosted inside this plugin: commands, events, its settings tab and the
+		// diff preview view are all registered through this plugin instance.
+		this.linter = new LinterPlugin(this);
+		await this.linter.onload();
 
 		this.app.workspace.onLayoutReady(() => {
 			if (this.settingsList) {
@@ -340,6 +349,8 @@ export default class CSSSettingsPlugin extends Plugin {
 	}
 
 	onunload() {
+		this.linter?.onunload();
+
 		this.lightEl.remove();
 		this.darkEl.remove();
 

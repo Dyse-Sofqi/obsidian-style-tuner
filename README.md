@@ -17,15 +17,15 @@
 
 ### 关键词 / Keywords
 
-**中文**：主题变量调校 · CSS 片段可视化配置 · 独立标签页视图 · 外观面板（颜色模式 / 主题切换）· CSS 片段启停管理 · 打开片段文件夹 · 颜色选择器（亮/暗双模式）· 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · **按变量名搜索** · 变量名一键复制 · `@settings` 生态兼容 · 界面美化 · 已修改值高亮 · 两栏导出弹窗 · 按区块导出 / 导入 · 24 种界面语言
+**中文**：主题变量调校 · CSS 片段可视化配置 · 独立标签页视图 · 外观面板（颜色模式 / 主题切换）· CSS 片段启停管理 · 打开片段文件夹 · 颜色选择器（亮/暗双模式）· 数值滑块 · 下拉选择 · 类开关 · 标题层级折叠 · 搜索过滤 · **按变量名搜索** · 变量名一键复制 · `@settings` 生态兼容 · 界面美化 · 已修改值高亮 · 两栏导出弹窗 · 按区块导出 / 导入 · 24 种界面语言 · **Markdown 美化与 Lint（Obsidian Linter 引擎集成）**
 
-**English**: theme variable fine-tuning · visual CSS snippet configuration · standalone tabbed view · appearance panel (color mode / theme switching) · CSS snippet enable-disable management · open snippets folder · dual-mode color pickers (light/dark) · number sliders · dropdown selects · class toggles · collapsible heading groups · search filter · **search by variable name** · one-click variable-name copy · `@settings` ecosystem compatibility · beautified UI · modified-value highlighting · two-column export dialog · per-section export/import · 24 UI languages
+**English**: theme variable fine-tuning · visual CSS snippet configuration · standalone tabbed view · appearance panel (color mode / theme switching) · CSS snippet enable-disable management · open snippets folder · dual-mode color pickers (light/dark) · number sliders · dropdown selects · class toggles · collapsible heading groups · search filter · **search by variable name** · one-click variable-name copy · `@settings` ecosystem compatibility · beautified UI · modified-value highlighting · two-column export dialog · per-section export/import · 24 UI languages · **markdown linting & formatting (Obsidian Linter engine, ported)**
 
 ### 简介 / Introduction
 
-**中文**：Style Tuner 是一款 Obsidian 插件，让主题、CSS 片段与插件 CSS 声明一组可配置项，并把这些可调设置集中在同一个设置面板里：支持在 `body` 上开关类名，以及设置数值、文本、颜色等 CSS 变量——无需手动改 CSS，主题调校所见即所得。除了样式变量，面板还接管了 Obsidian 原生外观设置中的三件事：颜色模式（跟随系统 / 亮色 / 深色）、主题切换，以及 CSS 片段的启停管理——既可以作为插件设置页打开，也可以作为独立标签页打开，边调边看。它是 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings)（作者 [mgmeyers](https://github.com/mgmeyers)）的独立维护分支，遵循 GPL-3.0 协议，解析与原版完全相同的 `/* @settings` 配置块，现有主题与片段无需任何修改即可使用。**它是独立插件，不要与 Style Settings 同时启用。**
+**中文**：Style Tuner 是一款 Obsidian 插件，让主题、CSS 片段与插件 CSS 声明一组可配置项，并把这些可调设置集中在同一个设置面板里：支持在 `body` 上开关类名，以及设置数值、文本、颜色等 CSS 变量——无需手动改 CSS，主题调校所见即所得。除了样式变量，面板还接管了 Obsidian 原生外观设置中的三件事：颜色模式（跟随系统 / 亮色 / 深色）、主题切换，以及 CSS 片段的启停管理——既可以作为插件设置页打开，也可以作为独立标签页打开，边调边看。它是 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings)（作者 [mgmeyers](https://github.com/mgmeyers)）的独立维护分支，遵循 GPL-3.0 协议，解析与原版完全相同的 `/* @settings` 配置块，现有主题与片段无需任何修改即可使用。自 1.2.0 起，它还内置了 [Obsidian Linter](https://github.com/platers/obsidian-linter)（作者 [platers / Victor Tao](https://github.com/platers)，MIT 协议）的 Markdown 美化与格式化引擎，其全部设置项集成在面板标签组（格式化 / YAML规范 / 内容规范 / 空行规范 / 自定义规范）中，并附一组命令使用。**它是独立插件，不要与 Style Settings 同时启用。**
 
-**English**: Style Tuner is an Obsidian plugin that lets themes, CSS snippets, and plugin CSS declare a set of configurable options, and collects them into a single settings panel: toggle classes on `body`, and set numeric, text, or color CSS variables — no hand-editing CSS, WYSIWYG theme tuning. Beyond style variables, the panel also takes over three native Obsidian appearance settings: color mode (system / light / dark), theme switching, and CSS snippet management — usable either as a plugin settings tab or as a standalone view, so you can tune and preview side by side. It is an independently maintained fork of [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) by [mgmeyers](https://github.com/mgmeyers), licensed under GPL-3.0. It parses the exact same `/* @settings` blocks, so existing themes and snippets work unchanged. **It is a separate plugin — do not enable it together with Style Settings.**
+**English**: Style Tuner is an Obsidian plugin that lets themes, CSS snippets, and plugin CSS declare a set of configurable options, and collects them into a single settings panel: toggle classes on `body`, and set numeric, text, or color CSS variables — no hand-editing CSS, WYSIWYG theme tuning. Beyond style variables, the panel also takes over three native Obsidian appearance settings: color mode (system / light / dark), theme switching, and CSS snippet management — usable either as a plugin settings tab or as a standalone view, so you can tune and preview side by side. It is an independently maintained fork of [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) by [mgmeyers](https://github.com/mgmeyers), licensed under GPL-3.0. It parses the exact same `/* @settings` blocks, so existing themes and snippets work unchanged. Since 1.2.0, it also bundles the markdown styling & formatting engine of [Obsidian Linter](https://github.com/platers/obsidian-linter) by [platers / Victor Tao](https://github.com/platers) (MIT licensed), with all of its settings integrated into the panel tabs (Format / YAML Rules / Content Rules / Blank-line Rules / Custom Rules) plus a set of commands. **It is a separate plugin — do not enable it together with Style Settings.**
 
 ### 功能 / Features
 
@@ -40,6 +40,7 @@
 - **界面美化** — 可折叠标题按层级着色、树形缩进线呈现嵌套关系、设置项横向布局、设置页自动加宽，深浅色主题自适应。
 - **已自定义值高亮** — 改过默认值的设置行实时亮起标记，重置后立即熄灭。
 - **导出/导入增强** — 「全部设置」导出时可按一级区块勾选（默认只勾选来源仍启用的区块，来源已停用的残留配置默认不导出，但会列出来供手动勾选），只导出所选区块及其后代；导出弹窗为左右两栏（左侧勾选区块、右侧看配置文本），窗口更大、区块列表可滚动，底部按钮均为 Obsidian 原生按钮。
+- **内置 Markdown 美化引擎** — 集成 Obsidian Linter（MIT）的 66 条格式化规则与 lint 命令，全部设置项收纳进面板标签组，细节见下文「Linter 集成」。
 - **合规** — 不创建动态 `<style>` 元素（CSS 变量走 Obsidian 的 `setCssProps` 写在 `body` 的内联自定义属性上），已通过官方 `eslint-plugin-obsidianmd` recommended 规则复查、error 级规则全部通过。
 - **稳定性** — 修复后台标签页恢复后的启动崩溃，懒挂载视图自动补齐数据；外观/片段变化引发的并发刷新不再重复渲染片段列表。
 
@@ -54,6 +55,7 @@
 - **Beautified UI** — Collapsible headings with per-level accent bars and tree guide lines, horizontal setting rows, auto-widened panel; adapts to light/dark themes.
 - **Modified-value highlighting** — Rows whose saved values differ from defaults light up in real time and reset immediately clears the marker.
 - **Enhanced export/import** — Exports can be filtered by first-level sections (only sections whose source is still enabled are checked by default; leftover customizations from disabled sources are listed but not exported unless you check them). The export dialog is split into two columns (sections on the left, config text on the right) with a larger, scrollable section list and native Obsidian buttons.
+- **Bundled markdown formatting engine** — Integrates 66 formatting rules and lint commands from Obsidian Linter (MIT), with every option folded into the panel tabs; see "Linter integration" below for details.
 - **Review compliant** — No dynamic `<style>` elements (CSS variables are applied as inline custom properties on `body` through Obsidian's `setCssProps`), and the source passes the official `eslint-plugin-obsidianmd` recommended rule set with zero errors.
 - **Stability** — Fixes the startup crash after restoring a background tab and lazily hydrates the view; concurrent refreshes triggered by appearance/snippet changes no longer render the snippet list twice.
 
@@ -79,11 +81,29 @@
 > 不要同时启用 Style Tuner 与 Style Settings：两者都会渲染 `/* @settings` 配置面板，同一变量被写入两次可能产生冲突。
 > Do not enable Style Tuner and Style Settings at the same time: both render `/* @settings` panels, and the same variable may be written twice with conflicting results.
 
+### Linter 集成 / Linter integration
+
+**中文**：自 1.2.0 起，Style Tuner 内置了 [Obsidian Linter](https://github.com/platers/obsidian-linter)（MIT 协议，Copyright (c) 2021-2022 Victor Tao，完整许可文本见 [`src/linter/LICENSE`](src/linter/LICENSE)）的 Markdown 美化引擎，其设置集成在面板标签组中（格式化 / YAML规范 / 内容规范 / 空行规范 / 自定义规范），并附一组命令运行：
+
+- **66 条规则**，全部集成在 Style Tuner 面板的标签组中：「格式化」（常规开关、YAML 通用样式、忽略文件夹 / 忽略文件 / 额外文件扩展名三张独立卡片、调试）、「YAML规范」、「内容规范」（内容 + 标题 + 脚注 + 粘贴）、「空行规范」、「自定义规范」（自定义正则替换）；语言仅保留中英文（随 Obsidian 界面语言自动适配，其余语言回退英文）。linter 不再注册独立的设置页。
+- **触发方式**：手动命令（当前文件 / 全库 / 指定文件夹）、保存时自动 lint、切换文件时 lint、粘贴拦截（启用粘贴规则后接管粘贴）、以及「预览 Lint」差异视图；
+- **忽略机制**：按文件夹忽略、按文件名正则忽略；YAML、代码块、数学块、行内代码、链接等区域在规则处理时自动保护；
+- **自定义**：自定义正则替换（可排序、可启停）；上游的「lint 后执行自定义命令」功能已移除；
+- **数据独立**：Linter 设置存放于 `data-linter.json`，与样式设置（`data.json`）互不影响。
+
+*English*: Since 1.2.0, Style Tuner bundles the markdown styling engine of [Obsidian Linter](https://github.com/platers/obsidian-linter) (MIT licensed, Copyright (c) 2021-2022 Victor Tao; full license text in [`src/linter/LICENSE`](src/linter/LICENSE)). Its settings live in the panel tabs (Format / YAML Rules / Content Rules / Blank-line Rules / Custom Rules) and it ships with a set of commands:
+
+- **66 rules**, all integrated into the panel tabs: "Format" (general switches, YAML common styles, three separate cards for ignored folders / ignored files / extra file extensions, debug), "YAML Rules", "Content Rules" (content + headings + footnotes + paste), "Blank-line Rules", and "Custom Rules" (custom regex replacements). UI text ships in English and Chinese only, following the Obsidian interface language with English fallback elsewhere; the linter no longer registers a standalone settings tab.
+- **Triggers**: manual commands (current file / entire vault / a folder), lint on save, lint on file switch, paste interception (takes over pasting when paste rules are enabled), and a "Preview lint" diff view;
+- **Ignore mechanisms**: ignore by folder and by file-name regex; YAML, code blocks, math blocks, inline code, links and similar regions are automatically protected while rules run;
+- **Custom**: custom regex replacements (sortable, individually toggleable); the upstream "run custom commands after lint" feature has been removed;
+- **Independent data**: linter settings live in `data-linter.json` and never mix with the style settings in `data.json`.
+
 ### 数据存储 / Data storage
 
-你的全部调校值保存在 `<vault>/.obsidian/plugins/style-tuner/data.json`，只存储与默认值不同的覆盖项。**卸载插件会删除该文件**（主题与片段文件本身不受影响）——卸载前请用设置面板的导出功能备份，或直接复制 `data.json`。
+你的全部调校值保存在 `<vault>/.obsidian/plugins/style-tuner/data.json`，只存储与默认值不同的覆盖项。**卸载插件会删除该文件**（主题与片段文件本身不受影响）——卸载前请用设置面板的导出功能备份，或直接复制 `data.json`。Linter（1.2.0 起内置）的设置保存在同目录的 `data-linter.json`，卸载时同样会被删除。
 
-*English*: All of your tweaks are stored in `<vault>/.obsidian/plugins/style-tuner/data.json`, and only values differing from the defaults are written. **Uninstalling the plugin deletes that file** (your theme and snippet files are not affected) — export a backup from the panel, or copy `data.json`, before removing the plugin.
+*English*: All of your tweaks are stored in `<vault>/.obsidian/plugins/style-tuner/data.json`, and only values differing from the defaults are written. **Uninstalling the plugin deletes that file** (your theme and snippet files are not affected) — export a backup from the panel, or copy `data.json`, before removing the plugin. Linter settings (bundled since 1.2.0) live in `data-linter.json` in the same directory and are deleted as well.
 
 ### 供作者使用:`/* @settings` 参考文档(英文)
 
@@ -687,3 +707,9 @@ settings:
 ## License
 
 Style Tuner is licensed under the [GNU General Public License v3.0](LICENSE), following the license of the upstream Style Settings project. Contributions are welcome under the same license.
+
+本插件包含移植自 [Obsidian Linter](https://github.com/platers/obsidian-linter) 的代码，该项目由 Victor Tao 以 [MIT 协议](src/linter/LICENSE)发布（Copyright (c) 2021-2022 Victor Tao）。依照 MIT 协议要求，其版权与许可声明随源码一并保留（见 `src/linter/LICENSE`）；合并后的作品整体以 GPL-3.0 发布，移植部分继续遵循其原 MIT 许可。
+
+This repository contains code ported from [Obsidian Linter](https://github.com/platers/obsidian-linter) by Victor Tao, released under the [MIT License](src/linter/LICENSE) (Copyright (c) 2021-2022 Victor Tao). As required by the MIT license, its copyright and permission notice is preserved with the sources (see `src/linter/LICENSE`); the combined work is distributed under GPL-3.0, while the ported linter sources remain under their original MIT license.
+
+**致谢 / Credits**: 感谢 [mgmeyers](https://github.com/mgmeyers) 的 Style Settings 与 [platers / Victor Tao](https://github.com/platers) 及 Obsidian Linter 的所有贡献者。Thanks to [mgmeyers](https://github.com/mgmeyers) for Style Settings, and to [platers / Victor Tao](https://github.com/platers) and all Obsidian Linter contributors.

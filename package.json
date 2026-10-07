@@ -1,7 +1,7 @@
 {
   "name": "style-tuner",
-  "version": "1.1.1",
-  "description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls.",
+  "version": "1.2.1",
+  "description": "Fine-tune theme, plugin, and snippet CSS variables with configurable controls, plus markdown linting/formatting ported from obsidian-linter.",
   "main": "main.js",
   "scripts": {
     "typecheck": "tsc --noemit",
@@ -21,16 +21,17 @@
   "devDependencies": {
     "@codemirror/view": "^6.38.6",
     "@trivago/prettier-plugin-sort-imports": "4.2.0",
-    "@types/node": "16.11.6",
-    "@typescript-eslint/eslint-plugin": "5.29.0",
-    "@typescript-eslint/parser": "5.29.0",
+    "@types/diff-match-patch": "^1.0.32",
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
     "builtin-modules": "3.3.0",
-    "esbuild": "0.17.3",
-    "eslint": "8.47.0",
-    "obsidian": "latest",
+    "esbuild": "0.28.0",
+    "eslint": "^8.57.1",
+    "obsidian": "^1.13.0",
     "prettier": "3.0.2",
-    "tslib": "2.4.0",
-    "typescript": "4.7.4",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3",
     "vitest": "^3.2.1"
   },
   "dependencies": {
@@ -39,8 +40,26 @@
     "@types/js-yaml": "^4.0.3",
     "chroma-js": "^2.1.2",
     "detect-indent": "^7.0.0",
+    "diff-match-patch": "^1.0.5",
     "dotenv": "^10.0.0",
     "fuzzysort": "^2.0.4",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "loglevel": "^1.9.2",
+    "lru-cache": "^11.5.2",
+    "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-frontmatter": "^2.0.1",
+    "mdast-util-gfm-autolink-literal": "^2.0.1",
+    "mdast-util-gfm-footnote": "^2.1.0",
+    "mdast-util-math": "^3.0.0",
+    "meaw": "^11.0.0",
+    "micromark-extension-frontmatter": "^2.0.0",
+    "micromark-extension-gfm-autolink-literal": "^2.1.0",
+    "micromark-extension-gfm-footnote": "^2.1.0",
+    "micromark-extension-math": "^3.1.0",
+    "micromark-util-combine-extensions": "^2.0.1",
+    "moment-parseformat": "^4.0.0",
+    "ts-dedent": "^2.3.0",
+    "unist-util-visit": "^5.1.0",
+    "yaml": "^2.9.1"
   }
 }

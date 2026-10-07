@@ -1,0 +1,101 @@
+import {Command} from 'obsidian';
+import {EditorView} from '@codemirror/view';
+
+interface AppCommands {
+  executeCommandById(id: string): void;
+  commands: Record<string, Command>;
+}
+
+// allows for the removal of the any cast by defining some extra properties for Typescript so it knows these properties exist
+declare module 'obsidian' {
+  interface App {
+    commands: AppCommands;
+    dom: {
+      appContainerEl: HTMLElement;
+    };
+    workspace: Workspace;
+    viewRegistry: ViewRegistry
+  }
+
+  interface ViewRegistry {
+    unregisterView(type: string): void
+  }
+
+  interface Workspace {
+    getActiveFileView: () => FileView
+  }
+
+
+  interface Vault {
+    getConfig(id: string): boolean;
+  }
+
+  interface FileView {
+    /**
+     * @public
+     */
+    allowNoFile: boolean;
+    /**
+     * File views can be navigated by default.
+     * @inheritDoc
+     * @public
+     */
+    navigation: boolean;
+
+    /**
+     * @public
+     */
+    getDisplayText(): string;
+    /**
+     * @public
+     */
+    onload(): void;
+    /**
+     * @public
+     */
+    getState(): Record<string, unknown>;
+
+    /**
+     * @public
+     */
+    setState(state: unknown, result: ViewStateResult): Promise<void>;
+  }
+
+  interface ViewStateResult {
+    /**
+     * Set this to true to indicate that there is a state change which should be recorded in the navigation history.
+     * @public
+     */
+    history: boolean;
+  }
+
+  interface Editor {
+    /**
+     * CodeMirror editor instance
+     */
+    cm?: EditorView;
+  }
+
+  interface WorkspaceLeaf{
+    rebuildView(): Promise<void>;
+  }
+
+  interface Modal {
+    headerEl: HTMLElement;
+  }
+
+  interface ButtonComponent {
+    setLoading?: (v: boolean) => void
+  }
+}
+
+
+declare global {
+  interface Window {
+    CodeMirrorAdapter: {
+      commands: {
+        save(): void;
+      }
+    };
+  }
+}

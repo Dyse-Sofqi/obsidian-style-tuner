@@ -69,6 +69,14 @@ export const en = {
 
 	// Appearance (color mode / theme / CSS snippets)
 	'Style Settings': 'Style Settings',
+	'YAML Rules': 'YAML Rules',
+	'Content Rules': 'Content Rules',
+	'Blank-line Rules': 'Blank-line Rules',
+	'Custom Rules': 'Custom Rules',
+	'Format': 'Formatting',
+	'Delete': 'Delete',
+	'Move up': 'Move up',
+	'Move down': 'Move down',
 	'CSS Snippets': 'CSS Snippets',
 	'Color mode': 'Color mode',
 	'Theme': 'Theme',

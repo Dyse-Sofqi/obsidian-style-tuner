@@ -1,0 +1,169 @@
+import {Options, RuleType} from '../rules';
+import RuleBuilder, {ExampleBuilder, OptionBuilderBase} from './rule-builder';
+import dedent from 'ts-dedent';
+import {IgnoreTypes} from '../utils/ignore-types';
+import {ensureEmptyLinesAroundTables} from '../utils/regex';
+import {ProtectedRanges} from '../utils/protected-ranges';
+import {textReplacement} from '../utils/strings';
+import {applyNonOverlappingReplacements} from '../utils/text-edits';
+import {getEditsBetween} from '../utils/text-edits';
+
+class EmptyLineAroundTablesOptions implements Options {}
+
+@RuleBuilder.register
+export default class EmptyLineAroundTables extends RuleBuilder<EmptyLineAroundTablesOptions> {
+  constructor() {
+    super({
+      nameKey: 'rules.empty-line-around-tables.name',
+      descriptionKey: 'rules.empty-line-around-tables.description',
+      type: RuleType.SPACING,
+      ruleIgnoreTypes: [IgnoreTypes.yaml, IgnoreTypes.code, IgnoreTypes.math, IgnoreTypes.inlineMath, IgnoreTypes.wikiLink, IgnoreTypes.link],
+    });
+  }
+  get OptionsClass(): new () => EmptyLineAroundTablesOptions {
+    return EmptyLineAroundTablesOptions;
+  }
+  apply(text: string, options: EmptyLineAroundTablesOptions, protectedRanges: ProtectedRanges): string {
+    const projection = protectedRanges.projection();
+    // Table discovery and surrounding-line decisions are lexical; neither parses the projection.
+    const projectedText = ensureEmptyLinesAroundTables(projection.text);
+    const replacements: textReplacement[] = [];
+    for (const edit of getEditsBetween(projection.text, projectedText)) {
+      const range = projection.editRangeToSource(edit);
+      if (range) {
+        replacements.push({...range, value: edit.value});
+      }
+    }
+
+    return applyNonOverlappingReplacements(text, replacements);
+  }
+  get exampleBuilders(): ExampleBuilder<EmptyLineAroundTablesOptions>[] {
+    return [
+      new ExampleBuilder({
+        description: 'Tables that start a document do not get an empty line before them.',
+        before: dedent`
+          | Column 1 | Column 2 |
+          |----------|----------|
+          | foo      | bar      |
+          | baz      | qux      |
+          | quux     | quuz     |
+          More text.
+          # Heading
+          ${''}
+          **Note that text directly following a table is considered part of a table according to github markdown**
+        `,
+        after: dedent`
+          | Column 1 | Column 2 |
+          |----------|----------|
+          | foo      | bar      |
+          | baz      | qux      |
+          | quux     | quuz     |
+          ${''}
+          More text.
+          # Heading
+          ${''}
+          **Note that text directly following a table is considered part of a table according to github markdown**
+        `,
+      }),
+      new ExampleBuilder({
+        description: 'Tables that end a document do not get an empty line after them.',
+        before: dedent`
+          # Heading 1
+          | Column 1 | Column 2 |
+          |----------|----------|
+          | foo      | bar      |
+          | baz      | qux      |
+          | quux     | quuz     |
+        `,
+        after: dedent`
+          # Heading 1
+          ${''}
+          | Column 1 | Column 2 |
+          |----------|----------|
+          | foo      | bar      |
+          | baz      | qux      |
+          | quux     | quuz     |
+        `,
+      }),
+      new ExampleBuilder({
+        description: 'Tables that are not at the start or the end of the document will have an empty line added before and after them',
+        before: dedent`
+          # Table 1
+          | Column 1 | Column 2 | Column 3 |
+          |----------|----------|----------|
+          | foo      | bar      | blob     |
+          | baz      | qux      | trust    |
+          | quux     | quuz     | glob     |
+          # Table 2 without Pipe at Start and End
+          | Column 1 | Column 2 |
+          :-: | -----------:
+          bar | baz
+          foo | bar
+          # Header for more content
+          New paragraph.
+        `,
+        after: dedent`
+          # Table 1
+          ${''}
+          | Column 1 | Column 2 | Column 3 |
+          |----------|----------|----------|
+          | foo      | bar      | blob     |
+          | baz      | qux      | trust    |
+          | quux     | quuz     | glob     |
+          ${''}
+          # Table 2 without Pipe at Start and End
+          ${''}
+          | Column 1 | Column 2 |
+          :-: | -----------:
+          bar | baz
+          foo | bar
+          ${''}
+          # Header for more content
+          New paragraph.
+        `,
+      }),
+      new ExampleBuilder({
+        description: 'Tables in callouts or blockquotes have the appropriately formatted blank lines added',
+        before: dedent`
+          > Table in blockquote
+          > | Column 1 | Column 2 | Column 3 |
+          > |----------|----------|----------|
+          > | foo      | bar      | blob     |
+          > | baz      | qux      | trust    |
+          > | quux     | quuz     | glob     |
+          ${''}
+          More content here
+          ${''}
+          > Table doubly nested in blockquote
+          > > | Column 1 | Column 2 | Column 3 |
+          > > |----------|----------|----------|
+          > > | foo      | bar      | blob     |
+          > > | baz      | qux      | trust    |
+          > > | quux     | quuz     | glob     |
+        `,
+        after: dedent`
+          > Table in blockquote
+          >
+          > | Column 1 | Column 2 | Column 3 |
+          > |----------|----------|----------|
+          > | foo      | bar      | blob     |
+          > | baz      | qux      | trust    |
+          > | quux     | quuz     | glob     |
+          ${''}
+          More content here
+          ${''}
+          > Table doubly nested in blockquote
+          >
+          > > | Column 1 | Column 2 | Column 3 |
+          > > |----------|----------|----------|
+          > > | foo      | bar      | blob     |
+          > > | baz      | qux      | trust    |
+          > > | quux     | quuz     | glob     |
+        `,
+      }),
+    ];
+  }
+  get optionBuilders(): OptionBuilderBase<EmptyLineAroundTablesOptions>[] {
+    return [];
+  }
+}

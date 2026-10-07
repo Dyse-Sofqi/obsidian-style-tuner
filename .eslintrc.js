@@ -33,6 +33,10 @@ module.exports = {
     '@typescript-eslint/no-this-alias': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
+    // the ported linter code marks intentionally-unused params with a `_` prefix
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    'no-constant-condition': ['error', { checkLoops: false }],
+    'prefer-const': ['error', { destructuring: 'all' }],
     'react/no-unescaped-entities': 'off',
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off',

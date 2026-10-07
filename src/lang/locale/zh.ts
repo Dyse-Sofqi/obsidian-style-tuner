@@ -67,6 +67,14 @@ export const zh = {
 
 	// Appearance (color mode / theme / CSS snippets)
 	'Style Settings': '样式设置',
+	'YAML Rules': 'YAML规范',
+	'Content Rules': '内容规范',
+	'Blank-line Rules': '空行规范',
+	'Custom Rules': '自定义规范',
+	'Format': '格式化',
+	'Delete': '删除',
+	'Move up': '上移',
+	'Move down': '下移',
 	'CSS Snippets': 'CSS 片段',
 	'Color mode': '颜色模式',
 	'Theme': '主题',

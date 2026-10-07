@@ -9,6 +9,10 @@ package-lock.json
 main.js
 main.css
 data.json
+# linter 设置（开发库实时数据，随 Obsidian 运行写入）
+data-linter.json
+# 本地工作记录（非插件源码）
+.workbuddy-ai/
 .DS_Store
 *.js.map
 .env

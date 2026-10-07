@@ -4,6 +4,71 @@
 
 ---
 
+## 1.2.1 (2026-10-07)
+
+对 1.2.0 内置 Linter 的整理与界面优化，无规则行为变化。
+
+### 新增功能
+
+- 无。
+
+### 变更
+
+- **「文件与文件夹」拆分为三张独立卡片**：忽略文件夹、忽略文件、额外文件扩展名各占一张带标题的卡片，层级更直观（「文件与文件夹」汇总卡片移除）。
+- **「粘贴规范」标签页并入「内容规范」**：粘贴类 6 条规则作为带「粘贴」标题的独立卡片移入「内容规范」标签页末尾，标签组从六页减为五页（格式化 / YAML规范 / 内容规范 / 空行规范 / 自定义规范）。
+
+### 移除
+
+- **移除 Linter 的「自定义命令」功能**（上游 obsidian-linter 的「lint 完成后自动执行 Obsidian 命令」）：该功能仅用于串联其他插件的命令，使用面窄且带执行副作用（批量 lint 时会对每个文件静默执行命令），故整体裁剪。「自定义规范」标签页仅保留自定义正则替换；全库/文件夹 lint 确认弹窗不再出现自定义命令警告。旧 `data-linter.json` 里残留的 `lintCommands` 字段会在加载时自动清除，无需手动迁移；同时移除不再使用的 `async-lock` 依赖与命令搜索建议组件。
+
+### 错误修复
+
+- 修正调试分组中「Linter 配置」的描述文案：数据文件名由过时的 `data.json` 更正为 `data-linter.json`（1.2.0 起 Linter 设置独立存放于该文件，描述未同步）。
+
+---
+
+## 1.2.0 (2026-10-06)
+
+本版本把 [Obsidian Linter](https://github.com/platers/obsidian-linter)（MIT，作者 Victor Tao / platers）的 Markdown 美化引擎整体移植进插件，以 Style Tuner 为宿主运行。**最低 Obsidian 版本从 1.5.0 提升到 1.13.0**（Linter 设置页依赖 1.13 的声明式设置 API）。
+
+### 新增功能
+
+- **内置 Markdown Linter 引擎（源码位于 `src/linter/`）** — 66 条规则，分 YAML / 标题 / 脚注 / 内容 / 间距 / 粘贴六大类；命令：lint 当前文件（可选跳过忽略项）、lint 全库、lint 指定文件夹、忽略当前文件 / 文件夹、粘贴为纯文本、预览 Lint（差异视图）；触发：保存时、切换文件时、粘贴拦截（启用粘贴规则后）；设置页新增独立「Linter」标签页（常规 / 规则分类 / 忽略列表 / 自定义正则 / 自定义命令 / 调试）。Linter 设置独立存放于 `data-linter.json`，与样式设置的 `data.json` 互不影响。README 的「Linter 集成」与 License 节有详细说明与致谢。
+- **架构：Linter 以组件形式宿主** — `src/linter/main.ts` 的 `LinterPlugin` 不再继承 Obsidian `Plugin`，而是门面类：命令、事件、视图、编辑器建议、设置页全部委托宿主插件注册，数据读写经 `loadData`/`saveData` 门面落到独立文件。规则注册表 `rules-registry.ts` 由 glob 导入改为显式逐条导入，方便后续按条精简。
+
+### 变更
+
+### 新增功能
+
+- **Linter 设置项全面迁入 Style Tuner 面板，独立「Linter」设置页删除** — 标签组最终为「样式设置 / CSS 片段 / 格式化 / YAML规范 / 内容规范 / 空行规范 / 粘贴规范 / 自定义规范」：
+  - 「格式化」：常规开关、YAML 通用样式、文件与文件夹，原独立 Debug 页合并为其中一张独立卡片（日志级别 / Linter 配置 / 日志收集）；
+  - 「YAML规范」：YAML 类 15 条规则（单卡片）；「内容规范」：内容 + 标题 + 脚注三个分组，各自带标题与卡片；「空行规范」：空行 / Spacing 类 20 条规则；「粘贴规范」：粘贴类 6 条规则；「自定义规范」：自定义命令、自定义正则替换两个分组（含增删排序）。
+  - linter 的 `settingsTab` 不再 `addSettingTab`，仅作为定义与控件绑定的宿主；`update()` / `refreshDomState()` 相应脱离基类（基类实现面向已删除的 Obsidian 渲染页），定义变化通知改走面板监听。
+- **Style Tuner 面板新增「格式化」标签页** — 标签组变为「样式设置 / CSS 片段 / 格式化」，格式化页顶部的常规开关合并为一张卡片（开关联动的隐藏项出现时仍在同一卡片内）。linter 设置页里「规则」之前的设置项（常规开关：保存时格式化、文件修改时格式化、差异预览；YAML 通用样式；文件与文件夹：忽略文件夹 / 忽略文件 / 额外文件扩展名）迁移到此标签页展示，并**从「Linter」设置页移除**（该页现在只有规则 / 自定义 / Debug）。为此新增 `DefinitionsRenderer`：按 Obsidian 原生 DOM 结构渲染 1.13 声明式设置定义（`.setting-group > .setting-items` 卡片、原生内缩分隔线、toggle / 下拉 / 数字 / 文本控件绑定、内嵌 page 小节、列表增删与上移下移），列表增删经 `settingsTab.update()` → `onFormatChange` 通知面板重渲染。「文件与文件夹」卡片内的小节做了排版对齐：空状态行复用设置行样式（同内边距与分隔线），相邻小节标题上方补原生同款分隔线。修复添加忽略项后应用卡死：`update()` 的监听通知改为快照遍历，且格式化页的变更监听只注册一次——此前每次渲染都解绑重绑监听器，而 JS Set 的 for-of 会访问遍历期间新增的元素，监听器在同一轮遍历中被反复执行，造成无限重渲染。
+
+- **构建链升级** — esbuild 0.17.3 → 0.28.0（标准装饰器支持）、TypeScript 4.7 → 5.9、obsidian 类型 1.6.6 → 1.13.1、tslib → 2.8.1；`target` 提升到 es2020；`styles.css` 聚合新增 `linter` 段（Linter 设置页样式）。
+- **tsconfig** — `lib` 升到 esnext；`strictNullChecks` 暂时关闭（移植的 Linter 上游代码按 null 宽松风格编写，且上游本身不跑 tsc；后续精简时可按文件逐步恢复）。
+- **eslint** — `no-unused-vars` 豁免 `_` 前缀参数（Linter 的既有约定）、`no-constant-condition` 允许 `while` 循环、`prefer-const` 采用 `destructuring: 'all'`；新增依赖与升级后全量 lint 通过。
+
+### 精简（按需求裁剪）
+
+- **删除 auto-correct 拼写更正模块** — 移除 `auto-correct-common-misspellings` 规则及其全部支撑代码：联网下载错拼词表（`utils/auto-correct-misspellings.ts`、`default-misspellings.md`）、MD 文件选择器（`MdFilePickerOption` / `MdFilePickerOptionBuilder`、md-file-suggester、parse-results-modal、auto-correct-files-picker-option）、`RulesRunner` 中的错拼词注入与跳过逻辑、设置迁移项。`createRunLinterRulesOptions` 相应去掉 `defaultMisspellings` 参数。插件从「唯一联网的规则」变为完全离线。
+- **语言包只保留中英文** — 删除 21 个语言包（ar/cz/da/de/es/fr/hi/id/it/ja/ko/nl/no/pl/pt/pt-BR/ro/ru/sq/tr/uk），保留 `en`、`zh-cn`、`zh-tw`；Obsidian 界面语言为其他语言时自动回退英文。同步清理三个保留语言包中的 auto-correct 死键与 `lang/validation.ts`（仅上游测试使用）。`main.js` 体积 1.30MB → 0.91MB（约 -30%）。
+- **删除「覆盖默认地区语言」（linterLocale）设置项** — Linter 的界面语言与日期格式化区域完全跟随 Obsidian 界面语言（简/繁体中文各自适配，其余回退英文），不再提供手动覆盖；`LinterSettings.linterLocale` 字段与相应设置页下拉一并移除。
+- **删除「无修改时不显示消息」（suppressMessageWhenNoChange）设置项** — 格式化动作发生后始终给出反馈：lint 有改动时通知「+n / -m 字符」，无改动时通知「+0 / -0」，让用户确认命令确实触发过；是否显示通知仍由「显示已更改消息」（displayChanged）总开关控制。
+- **CSS 片段页卡片合并** — 「CSS 片段」标签页里的片段列表同样合并为一张卡片（原生 `setting-group` 结构：标题行「N 个 CSS 片段」与打开文件夹/刷新按钮留在卡片外，片段开关行进 `.setting-items`），行间分隔线为 Obsidian 原生内缩样式。
+- **规则页卡片合并** — 每个规则分类页（YAML / 标题 / 脚注 / 内容 / 间距 / 粘贴）下的规则不再各自一张卡片，合并为**一张卡片**（规则定义由每规则一个 group 改为每分类一个 group）。行间分隔完全交给 Obsidian 原生的组内分隔线（`.setting-group .setting-item::before`，两侧随卡片内边距内缩），不额外绘制线条。规则行内的文档图标、启用开关与选项布局不变，搜索索引不受影响。
+- **补齐中英文文案，界面语言完整适配** — 系统比对 en 与 zh-cn / zh-tw 的文案键：zh-cn 补齐 99 个、zh-tw 补齐 97 个缺失键（现均为 561/561 全覆盖），包括 diff 预览全套文案（命令「预览当前文件的 Lint 更改」、「Lint 预览」视图标题、应用/关闭按钮、差异摘要等）、忽略文件/文件夹命令、行内字段移入 YAML 规则整块、表格列对齐（繁体）、各列表编辑器的空状态与占位文案、枚举下拉显示值与校验消息。此前缺失的键一律回退英文，现已随 Obsidian 界面语言完整显示。
+
+### 修复（移植自上游时的顺手修复）
+
+- 全新安装时 `moveTextAreaSettingsToListItemSettings` 在空 `ruleConfigs` 上解引用崩溃（上游在存量数据下未触发）；
+- 「附加文件扩展名」列表页漏传 `plugin`，删除条目会抛错；
+- YAML key sort 规则的 `empty-state` / `placeholder-text` 文案在 en 语言包挂在了错误的键下（运行时显示为空）；
+- `ListItemOption` 构造参数错位（`defaultValue` 落到 `ruleAlias` 槽位，靠后续覆写才未出错）。
+
+---
+
 ## 1.1.1 (2026-10-05)
 
 本轮把 1.0.8 之后的全部工作（变量名搜索、导出弹窗重做、工具栏布局、审核合规）合并为一个版本发布。

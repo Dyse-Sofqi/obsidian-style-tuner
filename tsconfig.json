@@ -5,15 +5,15 @@
 		"inlineSourceMap": true,
 		"inlineSources": true,
 		"module": "ESNext",
-		"target": "es2018",
+		"target": "es2020",
 		"allowJs": true,
 		"noImplicitAny": true,
 		"moduleResolution": "node",
 		"importHelpers": true,
 		"isolatedModules": true,
-		"strictNullChecks": true,
+		"strictNullChecks": false,
 		"skipLibCheck": true,
-		"lib": ["dom", "es6", "scripthost", "es2018"],
+		"lib": ["dom", "scripthost", "esnext"]
 	},
-  	"include": ["src/*.ts", "src/*.tsx"]
+  	"include": ["src/*.ts", "src/*.tsx", "src/linter/typings/*.d.ts"]
 }

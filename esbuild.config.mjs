@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, renameSync, unlinkSync } from "fs";
 
 const banner =
 `/*
@@ -34,7 +34,7 @@ const context = await esbuild.context({
 		"@lezer/lr",
 		...builtins],
 	format: "cjs",
-	target: "es2018",
+	target: "es2020",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
@@ -46,13 +46,26 @@ if (prod) {
 	await context.rebuild();
 	// Aggregate plugin CSS into the distribution stylesheet:
 	// import order defines the cascade, so keep it authoritative.
-	// pickr-nano comes last so the picker theme bases on top of the
+	// linter.css is scoped to the linter UI and independent of the pickr
+	// theme; pickr-nano comes last so the picker theme bases on top of the
 	// plugin's own overrides, matching the previous bundle order.
-	const cssFiles = ["pickerOverrides", "settings", "beautify", "pickr-nano"];
+	const cssFiles = ["pickerOverrides", "settings", "beautify", "linter", "pickr-nano"];
 	const css = cssFiles
 		.map((name) => readFileSync(`src/css/${name}.css`, "utf8"))
 		.join("\n");
-	writeFileSync("styles.css", css);
+	// Write atomically (temp file + rename): hot-reload watches styles.css
+	// while Obsidian is running, and a read in the middle of a plain
+	// writeFileSync used to inject a truncated stylesheet.
+	const tmp = "styles.css.tmp";
+	writeFileSync(tmp, css);
+	try {
+		renameSync(tmp, "styles.css");
+	} catch (e) {
+		// Windows rename over an existing file can fail if a reader holds the
+		// file open; fall back to a direct write so the build never hard-fails.
+		unlinkSync(tmp);
+		writeFileSync("styles.css", css);
+	}
 	process.exit(0);
 } else {
 	await context.watch();
