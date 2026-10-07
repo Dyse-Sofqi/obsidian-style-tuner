@@ -6,7 +6,7 @@
 
 ## 1.2.1 (2026-10-07)
 
-对 1.2.0 内置 Linter 的整理与界面优化，无规则行为变化。
+对 1.2.0 内置 Linter 的整理与界面优化，无规则行为变化；并补做了一轮插件审核复查。
 
 ### 新增功能
 
@@ -25,6 +25,30 @@
 
 - 修正调试分组中「Linter 配置」的描述文案：数据文件名由过时的 `data.json` 更正为 `data-linter.json`（1.2.0 起 Linter 设置独立存放于该文件，描述未同步）。
 
+### 文档
+
+- **README 最低版本徽章修正** — 徽章一直写着 Obsidian ≥ 1.5.0，而 1.2.0 起 `manifest.json` 的 `minAppVersion` 已是 1.13.0（Linter 设置依赖 1.13 的声明式设置 API），徽章与实现不符，现更正为 1.13.0。
+- **CHANGELOG 1.2.0 章节标题结构修正** — 该节里一个空的「### 变更」后紧跟重复的「### 新增功能」，把迁移类条目错误地并进了「新增功能」；现合并为单处「变更」，条目归属与语义一致。
+
+### 插件审核复查（obsidianmd/eslint-plugin@0.4.2 `recommended`）
+
+1.2.0 引入了 `src/linter/` 下约 2.3 万行移植代码，故对 `src/**`（含 `src/linter/**`）重跑了一轮官方审核规则复查：**error 级规则全部通过**。其中审核要点「Sets styles directly instead of using CSS classes, `setCssProps`, or `setCssStyles`」（`obsidianmd/no-static-styles-assignment`）**零命中**——
+
+- 全部 9 处动态样式写入都收敛在 `src/Utils.ts` 的 `setCssProps()` 辅助函数里（`body` 上的 CSS 变量、取色器的 `--pcr-color`），它优先调用 Obsidian 的 `element.setCssProps()`，仅当老版本没有该扩展方法时才退回 `style.setProperty`。函数内那唯一一处 `style.setProperty` 位于能力探测后的回退分支，规则不判为违规（已用探针文件实测：`el.style.color = 'red'` 会报 error，`el.setCssProps()` 不会）。
+- 其余 error 级规则（`no-forbidden-elements`、`platform`、`detach-leaves`、`no-sample-code`、`regex-lookbehind`、`sample-names`、`settings-tab/no-manual-html-headings`、`no-problematic-settings-headings`、`rule-custom-message`）同样零命中。
+
+复查后保留的 warn 级告警（均为有意为之或移植代码的既有权衡）：
+
+- `obsidianmd/hardcoded-config-path`（20 处）、`obsidianmd/no-global-this`（3 处）——全部落在测试文件（`AppearanceManager.test.ts` 的 `.obsidian` fixture、三个测试的 `window` mock），不进打包产物；
+- `obsidianmd/prefer-window-timers`（6 处）——取色器 `show` 时那段 `activeWindow.requestAnimationFrame` 双击是为 popout 窗口里的选择框定位服务的，改用 `window` 会取到主窗口的帧回调；
+- `obsidianmd/prefer-get-language`（1 处）——`src/lang/helpers.ts` 继续读 localStorage 的 `language` 键：静态引入 `getLanguage()` 会让单测里的 `obsidian` 解析失败，两者取值一致，代码里已注明原因；
+- `obsidianmd/settings-tab/prefer-setting-definitions`（2 处）——`SettingsPanel` 用的是自定义渲染（同一份实现要同时服务独立视图与插件设置页），未走 1.13 的声明式设置定义；
+- `obsidianmd/ui/sentence-case`（2 处）——品牌名「Style Tuner」与 moment 日期占位符 `dddd, MMMM Do YYYY, h:mm:ss a`，都不是待改写的界面句子；
+- `obsidianmd/editor-drop-paste`（1 处，`src/linter/main.ts`）——规则只看事件回调本身，实际的 `evt.preventDefault()` 写在同一文件的 `modifyPasteEvent()` 里（`stopPropagation()` 之后），行为正确；
+- `obsidianmd/object-assign`（1 处，`src/linter/rules/rule-builder.ts`）——`Object.assign(new this.OptionsClass(), options)` 的目标是刚构造的空实例，不存在覆盖共享对象的问题。
+
+> 说明：官方 `recommended` 里还带一组 `@typescript-eslint` 类型安全规则（`no-unsafe-*` 等）。移植的 Linter 上游代码按 `strictNullChecks: false` 的宽松风格编写，这组规则会报出约 300 条告警；它们不属于 Obsidian 插件审核的判定项，本轮不做收敛。
+
 ---
 
 ## 1.2.0 (2026-10-06)
@@ -37,8 +61,6 @@
 - **架构：Linter 以组件形式宿主** — `src/linter/main.ts` 的 `LinterPlugin` 不再继承 Obsidian `Plugin`，而是门面类：命令、事件、视图、编辑器建议、设置页全部委托宿主插件注册，数据读写经 `loadData`/`saveData` 门面落到独立文件。规则注册表 `rules-registry.ts` 由 glob 导入改为显式逐条导入，方便后续按条精简。
 
 ### 变更
-
-### 新增功能
 
 - **Linter 设置项全面迁入 Style Tuner 面板，独立「Linter」设置页删除** — 标签组最终为「样式设置 / CSS 片段 / 格式化 / YAML规范 / 内容规范 / 空行规范 / 粘贴规范 / 自定义规范」：
   - 「格式化」：常规开关、YAML 通用样式、文件与文件夹，原独立 Debug 页合并为其中一张独立卡片（日志级别 / Linter 配置 / 日志收集）；

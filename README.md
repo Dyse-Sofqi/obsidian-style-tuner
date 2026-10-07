@@ -4,7 +4,7 @@
 
 像调音台一样,精细调校你的 Obsidian 外观。
 
-[![GitHub Release](https://img.shields.io/github/v/release/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%2342b883)](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) [![License](https://img.shields.io/github/license/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&color=%2342b883)](LICENSE) [![Obsidian Min App](https://img.shields.io/badge/Obsidian-%3E%3D1.5.0-%234a7ec1?style=flat-square&logo=obsidian&logoColor=%234a7ec1)](https://obsidian.md) [![GitHub Stars](https://img.shields.io/github/stars/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%23e4b341)](https://github.com/Dyse-Sofqi/obsidian-style-tuner)
+[![GitHub Release](https://img.shields.io/github/v/release/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%2342b883)](https://github.com/Dyse-Sofqi/obsidian-style-tuner/releases) [![License](https://img.shields.io/github/license/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&color=%2342b883)](LICENSE) [![Obsidian Min App](https://img.shields.io/badge/Obsidian-%3E%3D1.13.0-%234a7ec1?style=flat-square&logo=obsidian&logoColor=%234a7ec1)](https://obsidian.md) [![GitHub Stars](https://img.shields.io/github/stars/Dyse-Sofqi/obsidian-style-tuner?style=flat-square&logo=github&color=%23e4b341)](https://github.com/Dyse-Sofqi/obsidian-style-tuner)
 
 </div>
 
@@ -41,7 +41,7 @@
 - **已自定义值高亮** — 改过默认值的设置行实时亮起标记，重置后立即熄灭。
 - **导出/导入增强** — 「全部设置」导出时可按一级区块勾选（默认只勾选来源仍启用的区块，来源已停用的残留配置默认不导出，但会列出来供手动勾选），只导出所选区块及其后代；导出弹窗为左右两栏（左侧勾选区块、右侧看配置文本），窗口更大、区块列表可滚动，底部按钮均为 Obsidian 原生按钮。
 - **内置 Markdown 美化引擎** — 集成 Obsidian Linter（MIT）的 66 条格式化规则与 lint 命令，全部设置项收纳进面板标签组，细节见下文「Linter 集成」。
-- **合规** — 不创建动态 `<style>` 元素（CSS 变量走 Obsidian 的 `setCssProps` 写在 `body` 的内联自定义属性上），已通过官方 `eslint-plugin-obsidianmd` recommended 规则复查、error 级规则全部通过。
+- **合规** — 不创建动态 `<style>` 元素，也不直接给元素写内联样式：动态样式一律走 Obsidian 的 `setCssProps`（CSS 变量写在 `body` 的内联自定义属性上，取色器的 `--pcr-color` 同理），无法用类名表达的少数场景才由 CSS 类兜底。1.2.1 用官方 `eslint-plugin-obsidianmd@0.4.2` 的 `recommended` 配置对 `src/**`（含移植的 Linter 代码）重跑了一遍复查：**error 级规则全部通过**，其中审核要点「Sets styles directly instead of using CSS classes, `setCssProps`, or `setCssStyles`」（`obsidianmd/no-static-styles-assignment`）零命中。
 - **稳定性** — 修复后台标签页恢复后的启动崩溃，懒挂载视图自动补齐数据；外观/片段变化引发的并发刷新不再重复渲染片段列表。
 
 **English**:
@@ -56,7 +56,7 @@
 - **Modified-value highlighting** — Rows whose saved values differ from defaults light up in real time and reset immediately clears the marker.
 - **Enhanced export/import** — Exports can be filtered by first-level sections (only sections whose source is still enabled are checked by default; leftover customizations from disabled sources are listed but not exported unless you check them). The export dialog is split into two columns (sections on the left, config text on the right) with a larger, scrollable section list and native Obsidian buttons.
 - **Bundled markdown formatting engine** — Integrates 66 formatting rules and lint commands from Obsidian Linter (MIT), with every option folded into the panel tabs; see "Linter integration" below for details.
-- **Review compliant** — No dynamic `<style>` elements (CSS variables are applied as inline custom properties on `body` through Obsidian's `setCssProps`), and the source passes the official `eslint-plugin-obsidianmd` recommended rule set with zero errors.
+- **Review compliant** — No dynamic `<style>` elements and no inline styles written onto elements: dynamic styles always go through Obsidian's `setCssProps` (CSS variables land on `body`'s inline custom properties, same for the picker's `--pcr-color`), with CSS classes covering the few cases a class name expresses better. 1.2.1 re-ran the official `eslint-plugin-obsidianmd@0.4.2` `recommended` rule set over `src/**` (including the ported linter sources): **every error-level rule passes**, and the review item "Sets styles directly instead of using CSS classes, `setCssProps`, or `setCssStyles`" (`obsidianmd/no-static-styles-assignment`) reports zero hits.
 - **Stability** — Fixes the startup crash after restoring a background tab and lazily hydrates the view; concurrent refreshes triggered by appearance/snippet changes no longer render the snippet list twice.
 
 ### 安装 / Installation
