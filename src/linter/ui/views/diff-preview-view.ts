@@ -2,7 +2,14 @@ import {ItemView, WorkspaceLeaf} from 'obsidian';
 import DiffMatchPatch from 'diff-match-patch';
 import {getTextInLanguage} from '../../lang/helpers';
 
-export const diffPreviewViewType = 'linter-diff-preview';
+/**
+ * View types live in one global namespace shared by every plugin. Upstream
+ * obsidian-linter registers `linter-diff-preview`, so ours has to stay
+ * namespaced under our own plugin id: registering the shared name made one of
+ * the two plugins fail to load with
+ * "Attempting to register an existing view type". Do not shorten it back.
+ */
+export const diffPreviewViewType = 'style-tuner-linter-diff-preview';
 
 const largeDiffCharacterThreshold = 300000;
 const diffContextLineCount = 3;
@@ -46,7 +53,7 @@ export class DiffPreviewView extends ItemView {
 
   async onOpen() {
     this.contentEl.empty();
-    this.contentEl.addClass('linter-diff-preview-view');
+    this.contentEl.addClass('style-tuner-linter-diff-preview-view');
     this.render();
   }
 
@@ -61,29 +68,29 @@ export class DiffPreviewView extends ItemView {
     }
 
     this.contentEl.empty();
-    this.contentEl.addClass('linter-diff-preview-view');
+    this.contentEl.addClass('style-tuner-linter-diff-preview-view');
 
     if (!this.previewState) {
       this.contentEl.createDiv({
-        cls: 'linter-diff-preview-empty',
+        cls: 'style-tuner-linter-diff-preview-empty',
         text: getTextInLanguage('notice-text.no-preview-changes'),
       });
       return;
     }
 
-    const headerEl = this.contentEl.createDiv('linter-diff-preview-header');
-    const titleGroupEl = headerEl.createDiv('linter-diff-preview-title-group');
+    const headerEl = this.contentEl.createDiv('style-tuner-linter-diff-preview-header');
+    const titleGroupEl = headerEl.createDiv('style-tuner-linter-diff-preview-title-group');
     titleGroupEl.createEl('h3', {text: this.previewState.title});
 
     const hasChanges = this.previewState.oldText !== this.previewState.newText;
     if (!hasChanges) {
       titleGroupEl.createDiv({
-        cls: 'linter-diff-summary',
+        cls: 'style-tuner-linter-diff-summary',
         text: getTextInLanguage('notice-text.no-preview-changes'),
       });
     }
 
-    const actionsEl = headerEl.createDiv('linter-diff-preview-actions');
+    const actionsEl = headerEl.createDiv('style-tuner-linter-diff-preview-actions');
     actionsEl.createEl('button', {text: getTextInLanguage('close-button-text')})
         .addEventListener('click', () => {
           this.previewState = null;
@@ -99,7 +106,7 @@ export class DiffPreviewView extends ItemView {
       applyButton.addEventListener('click', () => this.applyPreview());
     }
 
-    this.bodyEl = this.contentEl.createDiv('linter-diff-preview-body');
+    this.bodyEl = this.contentEl.createDiv('style-tuner-linter-diff-preview-body');
     if (!hasChanges) {
       return;
     }
@@ -142,10 +149,10 @@ export class DiffPreviewView extends ItemView {
           .replace('{LINES_REMOVED}', summary.linesRemoved.toString())
           .replace('{CHARS_ADDED}', summary.charsAdded.toString())
           .replace('{CHARS_REMOVED}', summary.charsRemoved.toString()),
-      cls: 'linter-diff-summary',
+      cls: 'style-tuner-linter-diff-summary',
     });
 
-    const diffEl = this.bodyEl.createDiv({cls: 'linter-diff'});
+    const diffEl = this.bodyEl.createDiv({cls: 'style-tuner-linter-diff'});
     this.renderDiffLines(diffEl, this.createVisibleDiffLines(this.expandDiffs(diffs)));
   }
 
@@ -245,26 +252,26 @@ export class DiffPreviewView extends ItemView {
     for (const line of lines) {
       if ('skipped' in line) {
         diffEl.createDiv({
-          cls: 'linter-diff-skip',
+          cls: 'style-tuner-linter-diff-skip',
           text: getTextInLanguage('notice-text.diff-skipped-lines').replace('{COUNT}', line.skipped.toString()),
         });
         continue;
       }
 
       const lineEl = diffEl.createDiv({cls: this.diffClass(line.operation)});
-      lineEl.createSpan({cls: 'linter-diff-marker', text: this.diffPrefix(line.operation)});
-      lineEl.createSpan({cls: 'linter-diff-text', text: line.text});
+      lineEl.createSpan({cls: 'style-tuner-linter-diff-marker', text: this.diffPrefix(line.operation)});
+      lineEl.createSpan({cls: 'style-tuner-linter-diff-text', text: line.text});
     }
   }
 
   private diffClass(operation: number): string {
     if (operation === DiffMatchPatch.DIFF_INSERT) {
-      return 'linter-diff-line linter-diff-added';
+      return 'style-tuner-linter-diff-line style-tuner-linter-diff-added';
     } else if (operation === DiffMatchPatch.DIFF_DELETE) {
-      return 'linter-diff-line linter-diff-removed';
+      return 'style-tuner-linter-diff-line style-tuner-linter-diff-removed';
     }
 
-    return 'linter-diff-line linter-diff-context';
+    return 'style-tuner-linter-diff-line style-tuner-linter-diff-context';
   }
 
   private diffPrefix(operation: number): string {

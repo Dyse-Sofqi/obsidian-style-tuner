@@ -2,6 +2,7 @@ import {
 	ButtonComponent,
 	DropdownComponent,
 	ExtraButtonComponent,
+	setIcon,
 	Setting,
 	TextComponent,
 	ToggleComponent,
@@ -19,7 +20,8 @@ import { t } from '../lang/helpers';
  *
  * 定义联合类型没有 type 判别字段（control/render/action 靠字段存在性区分），
  * 所以分派统一走鸭子类型；只覆盖迁移部分用到的形态：render/control 行、
- * group、内嵌 page 与 list（增删；排序按钮仅在定义提供 onReorder 时出现）。
+ * group、内嵌 page 与 list（增删；定义提供 onReorder 时，条目左侧渲染拖拽
+ * 手柄并启用 HTML5 拖拽排序）。
  */
 export interface DefinitionsHost {
 	getControlValue(key: string): unknown;
@@ -71,8 +73,12 @@ export class DefinitionsRenderer {
 	}
 
 	private renderGroup(container: HTMLElement, item: any): void {
+		const isList = item.type === 'list';
 		const groupEl = container.createDiv({
-			cls: 'setting-group' + (item.cls ? ` ${item.cls}` : ''),
+			cls:
+				'setting-group' +
+				(isList ? ' style-tuner-linter-list' : '') +
+				(item.cls ? ` ${item.cls}` : ''),
 		});
 		if (item.heading || item.desc) {
 			const head = new Setting(groupEl).setHeading();
@@ -83,7 +89,7 @@ export class DefinitionsRenderer {
 		const children: any[] = item.items ?? [];
 		if (children.length === 0 && item.emptyState) {
 			// 空状态渲染成与设置行同构的行（同内边距、同原生分隔线）
-			const emptyEl = itemsEl.createDiv({ cls: 'setting-item linter-list-empty' });
+			const emptyEl = itemsEl.createDiv({ cls: 'setting-item style-tuner-linter-list-empty' });
 			const descEl = emptyEl.createDiv({ cls: 'setting-item-description' });
 			if (typeof item.emptyState === 'string') {
 				descEl.setText(item.emptyState);
@@ -91,7 +97,6 @@ export class DefinitionsRenderer {
 				descEl.appendChild(item.emptyState);
 			}
 		}
-		const isList = item.type === 'list';
 		children.forEach((child, index) => {
 			if (!child || child.visible?.() === false) return;
 			if (child.type === 'group' || child.type === 'list') {
@@ -104,7 +109,7 @@ export class DefinitionsRenderer {
 			}
 			const setting = this.renderSettingRow(itemsEl, child);
 			if (isList) {
-				this.appendListActions(setting, item, index);
+				this.decorateListRow(setting, item, index, itemsEl);
 			}
 		});
 		if (item.addItem) {
@@ -190,20 +195,68 @@ export class DefinitionsRenderer {
 
 	private renderAddItem(itemsEl: HTMLElement, list: any): void {
 		const add = list.addItem;
-		if (!add) return;
-		new Setting(itemsEl)
-			.setName(add.name)
-			.addButton((button: ButtonComponent) =>
+		const extraActions: {
+			label: string;
+			tooltip: string;
+			action: () => void | Promise<void>;
+		}[] = list.extraActions ?? [];
+		if (!add && extraActions.length === 0) return;
+
+		const setting = new Setting(itemsEl);
+
+		// 额外动作排在「+」左边：整份列表级别的操作给带文字的按钮，
+		// 主操作（添加条目）仍是右边的 + 图标按钮
+		for (const extra of extraActions) {
+			setting.addButton((button: ButtonComponent) =>
+				button.setButtonText(extra.label).setTooltip(extra.tooltip).onClick(() => {
+					void extra.action();
+					this.onChanged();
+				})
+			);
+		}
+
+		if (add) {
+			setting.setName(add.name).addButton((button: ButtonComponent) =>
 				button.setIcon('plus').setTooltip(add.name).onClick(() => {
 					add.action(button.buttonEl);
 					// 打开的是模态框；提交后的列表变化经 settingsTab.update()
 					// → onFormatChange 通知本面板重渲染。
 				})
 			);
+		}
+
+		setting.settingEl.addClass('style-tuner-linter-list-add-row');
 	}
 
-	/** 列表条目行的删除 / 排序按钮（追加到条目自身渲染的控件之后）。 */
-	private appendListActions(setting: Setting, list: any, index: number): void {
+	// ------------------------------------------------------------------
+	// 列表条目：拖拽手柄 + 删除按钮 + HTML5 拖拽排序
+	// ------------------------------------------------------------------
+
+	/** 当前正在拖拽的条目（跨行事件共享；同一时刻只有一次拖拽）。 */
+	private dragSource: { itemsEl: HTMLElement; index: number } | null = null;
+
+	/** 列表条目行：左侧拖拽手柄、删除按钮，以及拖拽排序的事件绑定。 */
+	private decorateListRow(
+		setting: Setting,
+		list: any,
+		index: number,
+		itemsEl: HTMLElement
+	): void {
+		setting.settingEl.addClass('style-tuner-linter-list-row');
+
+		if (list.onReorder) {
+			// 手柄插到行首（.setting-item-info 之前）。行本身不设 draggable，
+			// 只让手柄可拖，避免选中文本或点击行内控件时误触发拖拽。
+			const handle = setting.settingEl.createDiv({
+				cls: 'style-tuner-linter-list-drag-handle',
+			});
+			setting.settingEl.prepend(handle);
+			setIcon(handle, 'grip-vertical');
+			handle.setAttribute('draggable', 'true');
+			handle.setAttribute('aria-label', t('Drag to reorder'));
+			this.wireListDrag(handle, setting.settingEl, itemsEl, index, list);
+		}
+
 		if (list.onDelete) {
 			setting.addExtraButton((button: ExtraButtonComponent) =>
 				button
@@ -215,27 +268,82 @@ export class DefinitionsRenderer {
 					})
 			);
 		}
-		if (list.onReorder) {
-			setting.addExtraButton((button: ExtraButtonComponent) =>
-				button
-					.setIcon('arrow-up')
-					.setTooltip(t('Move up'))
-					.onClick(() => {
-						if (index > 0) {
-							list.onReorder?.(index, index - 1);
-							this.onChanged();
-						}
-					})
-			);
-			setting.addExtraButton((button: ExtraButtonComponent) =>
-				button
-					.setIcon('arrow-down')
-					.setTooltip(t('Move down'))
-					.onClick(() => {
-						list.onReorder?.(index, index + 1);
-						this.onChanged();
-					})
-			);
+	}
+
+	/**
+	 * 绑定一行的拖拽事件。
+	 *
+	 * `onReorder(oldIndex, newIndex)` 的语义是「先 splice 掉 oldIndex，
+	 * 再插到 newIndex」，所以落点要按「移除后再算下标」换算：先由指针位于
+	 * 行的上半 / 下半求出插入位（0..n 的缝隙编号），若插入位在被拖项之后
+	 * 则减一，得到移除后的目标下标。
+	 */
+	private wireListDrag(
+		handle: HTMLElement,
+		rowEl: HTMLElement,
+		itemsEl: HTMLElement,
+		index: number,
+		list: any
+	): void {
+		handle.addEventListener('dragstart', (evt: DragEvent) => {
+			this.dragSource = { itemsEl, index };
+			rowEl.addClass('is-dragging');
+			evt.dataTransfer?.setData('text/plain', String(index));
+			if (evt.dataTransfer) {
+				evt.dataTransfer.effectAllowed = 'move';
+				// 用整行作为拖拽影像，而不是小小的手柄
+				evt.dataTransfer.setDragImage(rowEl, 16, 16);
+			}
+		});
+		handle.addEventListener('dragend', () => {
+			this.dragSource = null;
+			this.clearDragState(itemsEl);
+		});
+
+		rowEl.addEventListener('dragover', (evt: DragEvent) => {
+			if (!this.dragSource || this.dragSource.itemsEl !== itemsEl) return;
+			evt.preventDefault();
+			if (evt.dataTransfer) evt.dataTransfer.dropEffect = 'move';
+			const after = this.isPointerInLowerHalf(evt, rowEl);
+			rowEl.toggleClass('is-drop-below', after);
+			rowEl.toggleClass('is-drop-above', !after);
+		});
+		rowEl.addEventListener('dragleave', (evt: DragEvent) => {
+			// 在行内子元素之间移动也会触发 dragleave，relatedTarget 仍在行内时忽略
+			if (rowEl.contains(evt.relatedTarget as Node | null)) return;
+			rowEl.removeClass('is-drop-above');
+			rowEl.removeClass('is-drop-below');
+		});
+		rowEl.addEventListener('drop', (evt: DragEvent) => {
+			const source = this.dragSource;
+			if (!source || source.itemsEl !== itemsEl) return;
+			evt.preventDefault();
+			const insertBefore = this.isPointerInLowerHalf(evt, rowEl)
+				? index + 1
+				: index;
+			const newIndex =
+				insertBefore > source.index ? insertBefore - 1 : insertBefore;
+			const oldIndex = source.index;
+			this.dragSource = null;
+			this.clearDragState(itemsEl);
+			if (newIndex !== oldIndex) {
+				list.onReorder?.(oldIndex, newIndex);
+				this.onChanged();
+			}
+		});
+	}
+
+	private isPointerInLowerHalf(evt: DragEvent, rowEl: HTMLElement): boolean {
+		const rect = rowEl.getBoundingClientRect();
+		return evt.clientY > rect.top + rect.height / 2;
+	}
+
+	/** 清掉一次拖拽留下的所有视觉状态（拖拽中 / 落点指示线）。 */
+	private clearDragState(itemsEl: HTMLElement): void {
+		for (const child of Array.from(itemsEl.children)) {
+			child.removeClass('is-dragging');
+			child.removeClass('is-drop-above');
+			child.removeClass('is-drop-below');
 		}
 	}
 }

@@ -9,14 +9,14 @@ export class LintConfirmationModal extends Modal {
     super(app);
     this.modalEl.addClass('confirm-modal');
 
-    this.contentEl.createEl('h3', {text: getTextInLanguage('warning-text'), cls: 'modal-heading'});
+    this.contentEl.createEl('h3', {text: getTextInLanguage('warning-text'), cls: 'style-tuner-linter-modal-heading'});
 
     this.contentEl.createEl('p',
         {text: startModalMessageText + ' ' + getTextInLanguage('file-backup-text')}).id = 'confirm-dialog';
 
     let suppressCheckbox: HTMLInputElement;
     if (saveSuppressPreference) {
-      const checkboxContainer = this.contentEl.createDiv('confirm-modal-checkbox-container');
+      const checkboxContainer = this.contentEl.createDiv('style-tuner-linter-confirm-modal-checkbox-container');
       suppressCheckbox = checkboxContainer.createEl('input', {type: 'checkbox', attr: {id: 'suppress-confirmation'}});
       checkboxContainer.createEl('label', {text: getTextInLanguage('do-not-show-again'), attr: {for: 'suppress-confirmation'}});
     }

@@ -1,15 +1,17 @@
 import {Options, RuleType} from '../rules';
-import RuleBuilder, {ExampleBuilder, OptionBuilderBase, ListItemOptionBuilder} from './rule-builder';
+import RuleBuilder, {ExampleBuilder, OptionBuilderBase, YamlAttributeOptionBuilder} from './rule-builder';
 import dedent from 'ts-dedent';
 import {formatYAML, initYAML, loadYAML} from '../utils/yaml';
-import { isValidYaml } from '../utils/validation';
 import {escapeDollarSigns, yamlRegex} from '../utils/regex';
+import {
+  defaultYamlAttributes,
+  normalizeYamlAttributeEntries,
+  renderYamlAttributeLine,
+  type YamlAttributeEntry,
+} from '../utils/yaml-attributes';
 
 class InsertYamlAttributesOptions implements Options {
-  textToInsert: string[] = [
-    'aliases: ',
-    'tags: ',
-  ];
+  textToInsert: YamlAttributeEntry[] = defaultYamlAttributes();
 }
 
 @RuleBuilder.register
@@ -27,19 +29,19 @@ export default class InsertYamlAttributes extends RuleBuilder<InsertYamlAttribut
   apply(text: string, options: InsertYamlAttributesOptions): string {
     text = initYAML(text);
     return formatYAML(text, (text) => {
-      const insert_lines = options.textToInsert.reverse();
-      const parsed_yaml = loadYAML(text.match(yamlRegex)[1]);
+      const entries = normalizeYamlAttributeEntries(options.textToInsert);
+      const parsedYaml = loadYAML(text.match(yamlRegex)[1]);
+      const now = new Date();
 
-      for (let line of insert_lines) {
-        const parts =  line.split(':');
-        const key = parts[0];
-        if (parts.length === 1) {
-          line  += ":"
+      // 倒着插入：每条都塞到开头的 `---` 之后，反过来走最后顺序才与列表一致。
+      // 这里必须先复制再反转——`.reverse()` 是就地反转，会直接改坏 settings 里
+      // 那份数组（每次 lint 都把顺序翻一遍，界面上的排序也跟着跳）。
+      for (const entry of [...entries].reverse()) {
+        if (Object.prototype.hasOwnProperty.call(parsedYaml, entry.key)) {
+          continue;
         }
 
-        if (!Object.prototype.hasOwnProperty.call(parsed_yaml, key)) {
-          text = text.replace(/^---\n/, escapeDollarSigns(`---\n${line}\n`));
-        }
+        text = text.replace(/^---\n/, escapeDollarSigns(`---\n${renderYamlAttributeLine(entry, now)}\n`));
       }
 
       return text;
@@ -48,7 +50,7 @@ export default class InsertYamlAttributes extends RuleBuilder<InsertYamlAttribut
   get exampleBuilders(): ExampleBuilder<InsertYamlAttributesOptions>[] {
     return [
       new ExampleBuilder({
-        description: 'Insert static lines into YAML frontmatter. Text to insert: `aliases:\ntags: doc\nanimal: dog`',
+        description: 'Insert static lines into YAML frontmatter. Keys to insert: `aliases` (text), `tags` (text, value `doc`), `animal` (text, value `dog`)',
         before: dedent`
           ---
           animal: cat
@@ -63,9 +65,30 @@ export default class InsertYamlAttributes extends RuleBuilder<InsertYamlAttribut
         `,
         options: {
           textToInsert: [
-            'aliases:',
-            'tags: doc',
-            'animal: dog',
+            {key: 'aliases', type: 'text', value: ''},
+            {key: 'tags', type: 'text', value: 'doc'},
+            {key: 'animal', type: 'text', value: 'dog'},
+          ],
+        },
+      }),
+      new ExampleBuilder({
+        description: 'A list key expands to a block sequence instead of a bare key',
+        before: dedent`
+          ---
+          title: note
+          ---
+        `,
+        after: dedent`
+          ---
+          tags:
+            - a
+            - b
+          title: note
+          ---
+        `,
+        options: {
+          textToInsert: [
+            {key: 'tags', type: 'list', value: 'a, b'},
           ],
         },
       }),
@@ -73,14 +96,12 @@ export default class InsertYamlAttributes extends RuleBuilder<InsertYamlAttribut
   }
   get optionBuilders(): OptionBuilderBase<InsertYamlAttributesOptions>[] {
     return [
-      new ListItemOptionBuilder({
+      new YamlAttributeOptionBuilder({
         OptionsClass: InsertYamlAttributesOptions,
         nameKey: 'rules.insert-yaml-attributes.text-to-insert.name',
         descriptionKey: 'rules.insert-yaml-attributes.text-to-insert.description',
         emptyStateKey: 'rules.insert-yaml-attributes.text-to-insert.empty-state',
-        fieldNamePlaceholderKey: 'rules.insert-yaml-attributes.text-to-insert.placeholder-text',
         optionsKey: 'textToInsert',
-        validator: isValidYaml,
       }),
     ];
   }

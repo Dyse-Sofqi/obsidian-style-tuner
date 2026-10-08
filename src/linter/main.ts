@@ -4,6 +4,7 @@ import { Options, RuleType, ruleTypeToRules, rules, sortRules } from './rules';
 import DiffMatchPatch from 'diff-match-patch';
 import dedent from 'ts-dedent';
 import { stripCr } from './utils/strings';
+import { normalizeYamlAttributeEntries } from './utils/yaml-attributes';
 import { diffToEditorChanges } from './utils/editor-changes';
 import { logInfo, logError, logDebug, setLogLevel, logWarn, setCollectLogs, clearLogs, convertNumberToLogLevel } from './utils/logger';
 import { moment } from 'obsidian';
@@ -81,6 +82,12 @@ export default class LinterPlugin {
   private originalSaveCallback?: (checking: boolean) => boolean | void = null;
   private activeFileChangeDebouncer: Map<string, FileChangeUpdateInfo> = new Map();
   private diffPreviewCommandsRegistered = false;
+  /**
+   * loadSettings() 期间补齐了多少缺失的规则默认值。补齐本身发生在加载时
+   * （赶在任何监听器注册之前），这里只记录结果，供
+   * makeSureSettingsFilledInAndCleanupSettings() 决定要不要落盘。
+   */
+  private ruleDefaultsFilledOnLoad = false;
   private saveSettingsDebounce = debounce(async (settings: LinterSettings) => {
     await this.saveData(settings);
   }, 5000);
@@ -119,8 +126,13 @@ export default class LinterPlugin {
   }
 
   removeCommand(commandId: string): void {
-    const commands = this.app.commands as unknown as { removeCommand?: (id: string) => void };
-    commands.removeCommand?.(`${this.manifest.id}:${commandId}`);
+    // Go through the host, exactly like addCommand: Obsidian namespaces command
+    // ids with the *registering* plugin's id, which here is the host
+    // (`style-tuner`), not this facade's own `style-tuner-linter`. Building the
+    // id from this.manifest.id looked up a command that never existed, so
+    // removeDiffPreviewCommands() silently failed to unregister the preview
+    // command when the diff-preview setting was switched off.
+    this.host.removeCommand(commandId);
   }
 
   registerEvent(eventRef: EventRef): void {
@@ -202,6 +214,16 @@ export default class LinterPlugin {
     // carry the removed lintCommands array; drop it so it is not saved back.
     delete data?.lintCommands;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, data) as LinterSettings;
+    // `Object.assign` is shallow: a saved `ruleConfigs` replaces
+    // `DEFAULT_SETTINGS.ruleConfigs` wholesale, so rules added after that file
+    // was written have no entry at all. Fill the gaps here, before any listener
+    // is registered in onload() — the editor-change handler used to run against
+    // a half-filled `ruleConfigs` during the startup window and threw.
+    this.ruleDefaultsFilledOnLoad = this.fillInMissingRuleDefaults();
+    // 「插入 YAML 属性」的条目由「整行文本」改成了 {键名, 属性类型, 默认值}，
+    // 旧数据在这里就地迁移成新格式（迁移结果同样交给上面的标志决定是否落盘）。
+    this.ruleDefaultsFilledOnLoad =
+      this.migrateYamlAttributeEntries() || this.ruleDefaultsFilledOnLoad;
     if (typeof this.settings.enableDiffPreviewView !== 'boolean') {
       this.settings.enableDiffPreviewView = true;
     }
@@ -399,7 +421,7 @@ export default class LinterPlugin {
     this.eventRefs.push(eventRef);
 
     eventRef = this.app.workspace.on('editor-change', async (editor: Editor, info: MarkdownView | MarkdownFileInfo) => {
-      if ((this.settings.ruleConfigs['yaml-timestamp']['update-on-file-contents-updated'] ?? AfterFileChangeLintTimes.Never) == AfterFileChangeLintTimes.Never) {
+      if (this.getYamlTimestampUpdateTiming() == AfterFileChangeLintTimes.Never) {
         return;
       }
 
@@ -751,6 +773,65 @@ export default class LinterPlugin {
     moment.locale(oldLocale);
   }
 
+  /**
+   * 补齐 `ruleConfigs` 里缺失的规则条目与缺失的选项键。
+   *
+   * `loadSettings()` 用 `Object.assign` 浅合并 data-linter.json，保存时还没有
+   * 某条规则（或某个选项）的话，对应的键就不会出现。这里在 loadSettings 阶段
+   * 就补齐，保证 onload 注册 editor-change 等监听时 `ruleConfigs` 已经是完整的
+   * ——此前补齐只发生在 onLayoutReady 的 makeSureSettingsFilledInAndCleanupSettings，
+   * 启动窗口内读缺失键会抛 TypeError。
+   *
+   * @return {boolean} 是否有默认值被补上（供调用方决定是否落盘）
+   */
+  private fillInMissingRuleDefaults(): boolean {
+    let updateMade = false;
+    for (const rule of rules) {
+      const ruleDefaults = rule.getDefaultOptions();
+      if (!this.settings.ruleConfigs[rule.alias]) {
+        this.settings.ruleConfigs[rule.alias] = ruleDefaults;
+        updateMade = true;
+        continue;
+      }
+
+      // make sure new/empty settings on a rule that exists get filled in with their default value as well
+      for (const key of Object.keys(ruleDefaults)) {
+        if (!Object.hasOwn(this.settings.ruleConfigs[rule.alias], key)) {
+          this.settings.ruleConfigs[rule.alias][key] = ruleDefaults[key];
+          updateMade = true;
+        }
+      }
+    }
+
+    return updateMade;
+  }
+
+  /**
+   * 把「插入 YAML 属性」的条目从旧的「一整行文本」（`'aliases: '`）迁到
+   * `{键名, 属性类型, 默认值}`。
+   *
+   * 就地替换 `ruleConfigs` 里那份数组：列表界面的增删与拖拽排序都靠这个引用，
+   * 换数组会让排序落不进磁盘（`normalizeYamlAttributeEntries` 只在真的需要迁移
+   * 时才返回新数组，正是为此）。
+   *
+   * @return {boolean} 是否发生了迁移（供调用方决定是否落盘）
+   */
+  private migrateYamlAttributeEntries(): boolean {
+    const ruleConfigs = this.settings.ruleConfigs;
+    const config = ruleConfigs['insert-yaml-attributes'] as Record<string, unknown> | undefined;
+    if (!config || config['text-to-insert'] === undefined) {
+      return false;
+    }
+
+    const migrated = normalizeYamlAttributeEntries(config['text-to-insert']);
+    if (migrated === config['text-to-insert']) {
+      return false;
+    }
+
+    config['text-to-insert'] = migrated;
+    return true;
+  }
+
   private async makeSureSettingsFilledInAndCleanupSettings() {
     let updateMade = false;
 
@@ -799,23 +880,12 @@ export default class LinterPlugin {
       new Notice(noticeText, userClickTimeout);
     }
 
-    // make sure to load the defaults of any missing rules to make sure they do not cause issues on the settings page
-    for (const rule of rules) {
-      const ruleDefaults = rule.getDefaultOptions();
-      if (!this.settings.ruleConfigs[rule.alias]) {
-        this.settings.ruleConfigs[rule.alias] = ruleDefaults;
-        updateMade = true;
-        continue;
-      }
-
-      // make sure new/empty settings on a rule that exists get filled in with their default value as well
-      for (const key of Object.keys(ruleDefaults)) {
-        if (!Object.hasOwn(this.settings.ruleConfigs[rule.alias], key)) {
-          this.settings.ruleConfigs[rule.alias][key] = ruleDefaults[key];
-          updateMade = true;
-        }
-      }
-    }
+    // the defaults were already filled in during loadSettings(); only the flag
+    // is left to decide whether the result has to be written back to disk.
+    // `||=` rather than `=`: the conflicting-rule fixes above may already have
+    // set updateMade, and that must not be dropped.
+    updateMade = updateMade || this.ruleDefaultsFilledOnLoad;
+    this.ruleDefaultsFilledOnLoad = false;
 
     // make sure that all custom replacements have the enabled property
     for (const customReplace of this.settings.customRegexes) {
@@ -830,9 +900,23 @@ export default class LinterPlugin {
     }
   }
 
+  /**
+   * 「YAML 时间戳」规则里「文件内容更新时」的触发时机。
+   *
+   * 直接读 `ruleConfigs['yaml-timestamp']['update-on-file-contents-updated']`
+   * 会在该规则条目缺失时抛 `TypeError: Cannot read properties of undefined`：
+   * `loadSettings()` 对 data-linter.json 是浅合并，保存该文件时若还没有
+   * `yaml-timestamp` 条目，这个键就会缺失；而 editor-change 监听注册于
+   * onload 阶段，早于 onLayoutReady 里才执行的默认值补齐，启动窗口内一编辑
+   * 文本就会命中。这里把两处读取收敛成一次安全读取，缺失时按「不触发」算。
+   */
+  private getYamlTimestampUpdateTiming(): AfterFileChangeLintTimes {
+    return this.settings.ruleConfigs['yaml-timestamp']?.['update-on-file-contents-updated'] ?? AfterFileChangeLintTimes.Never;
+  }
+
   private createDebouncedFileUpdate(): Debouncer<[TFile, Editor], Promise<void>> {
     let delay = 5000;
-    switch (this.settings.ruleConfigs['yaml-timestamp']['update-on-file-contents-updated'] ?? AfterFileChangeLintTimes.Never) {
+    switch (this.getYamlTimestampUpdateTiming()) {
       case AfterFileChangeLintTimes.After10Seconds:
         delay = 10000;
         break;

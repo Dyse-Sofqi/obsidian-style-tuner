@@ -4,6 +4,98 @@
 
 ---
 
+## 1.2.6 (2026-10-08)
+
+把全部列表型设置项（要插入的键、各类忽略列表、自定义正则等）统一整理了外观、支持拖拽排序；「插入 YAML 属性」的键可以指定属性类型；「YAML 键排序」可以从它继承键顺序。同时把内置 Linter 占用的全局命名空间（视图类型、CSS 类、图标 id）全部收窄到本插件自己的前缀下，与 obsidian-linter 可以同时启用而不再互相顶掉。
+
+> **版本说明**：上一版公开发布的是 `1.2.2`；其后的 `1.2.3` / `1.2.4` / `1.2.5` 都没有发布过，内容一并并入本版本（其中「规则卡片拆分」与「启动崩溃修复」开发过程中一度被误回滚，已恢复并复核）。
+
+### 新增功能
+
+- **「插入 YAML 属性」的键可编辑属性类型** — 该规则的条目此前是**一整行自由文本**（`'aliases: '`、`'memo:'`），插入时原样写进 frontmatter；现在每条是 `{键名, 属性类型, 默认值}`：
+
+  - 表单三项：**属性键名**、**属性类型**（文本 / 列表 / 数字 / 复选框 / 日期 / 日期时间，与 Obsidian「属性」面板的选项一致）、**值（可留空）**。值留空时按类型插入骨架——文本 `键:`、列表 `键: []`、数字 `键: 0`、复选框 `键: false`、日期 / 日期时间取当天；表单里实时显示这一步会插入什么。
+  - 插入的值按类型生成合法 YAML：列表展开成块序列（`键:` 换行后 `  - a`），数字与布尔不加引号，含冒号等特殊字符的文本自动加引号（`memo: "a: b"`）。列表的多个值用逗号分隔。
+  - 在设置里新增 / 编辑条目时，同时把类型登记进 Obsidian 的 `<configDir>/types.json`，让属性面板直接按该类型显示。优先走 `app.metadataTypeManager.setType()`（Obsidian 自己写文件并同步内存状态），不可用时退回 `vault.readConfigJson / writeConfigJson('types')`——两者都不在公开类型定义里，按项目约定 `as` 收窄 + 能力探测。
+  - **`aliases` / `tags` / `cssclasses` 的类型锁死为「列表」** — 这三个键的类型被 Obsidian 写死（`aliases` → 别名列表、`tags` → 标签列表、`cssclasses` → `multitext`；载入 types.json 后会被内置表 `Object.assign(assignedWidgets, UR)` 覆盖回来，属性面板里也是禁改的）。所以键名一改成这三个，**类型下拉立刻锁到「列表」并禁用**，列表行内也标注「列表（Obsidian 固定）」，写入 types.json 的步骤对它们直接跳过。不锁的话，用户把 `tags` 选成「数字」会得到 `tags: 0` 这种与 Obsidian 固定类型直接打架的值。`normalizeYamlAttributeEntries()` 同时把这三个键的声明类型强制成列表，旧数据（`aliases` / `tags` 原先是「文本」）在加载时一并纠正——插入结果由 `aliases:` 变为 `aliases: []`，与 Obsidian 自己写出的形状一致。
+  - 删除条目**不会**撤销 types.json 里的类型登记——该登记是库级、面向所有笔记的，别的笔记可能已经有这个键。
+  - **旧数据自动迁移**：`LinterPlugin.loadSettings()` 里把 `'aliases: '` 这类整行文本解析成 `{键名, 类型, 值}`（保留键直接取 Obsidian 固定的「列表」）并**就地**替换 settings 里那份数组（`migrateYamlAttributeEntries()`），界面与 lint 读到的始终是同一份新格式数据；迁移结果并入既有的「需要写回」标志，随下一次保存落盘。
+  - 值按类型做合法性校验（数字可解析、复选框是 `true` / `false`、日期是 `YYYY-MM-DD`、日期时间是 `YYYY-MM-DDTHH:mm[:ss]`），键名用 `yaml` 解析器实测是否可作键。
+
+- **「YAML 键排序」可以「继承」要插入的键** — 这两条规则都要一份「有序的 YAML 键清单」（一条用来插入缺失的键、一条用来排序），此前得把同一批键输两遍。现在「YAML 键优先级排序顺序」列表底部新增 **「继承『要插入的键』」按钮**：点一下把插入清单的键并进本列表，之后照常增删、拖拽调序。
+
+  - **是并入，不是覆盖**：源键按源的顺序排在前面，本列表里多出来的键（你自己加的）保持原有先后跟在后面，重复的只留第一次出现。直接整体替换会把用户自己加的键冲掉。
+  - **已经一致时什么都不做**：并入是并集，两边逐项相同时结果与原列表相同，此时直接返回、不写盘——点第二次不会发生任何事，也不会无谓重排。
+  - 源清单为空时同样不动本列表。
+
+  > 曾用「优先级顺序来源」下拉（自定义列表 / 要插入的键 自动跟随）来实现「只维护一份」，但那**天生是互斥的**：选了跟随就没法改，想在此基础上调整还得把键重输一遍。导入按钮把源当成**起点**、列表始终是唯一可编辑的基准，灵活性更好，所以下拉已移除。
+
+  > 为什么不是把两条规则合并成一条：两者的执行时机互斥。`yaml-key-sort` 是全管线的**最后一条**（`rules-runner.ts` 里排在 `yaml-timestamp` 之后），必须看到最终键集合；而插入走常规批次（管线中间），必须让后面的规则在同一轮看到新插入的键。`hasSpecialExecutionOrder` 的规则会被排除出常规批次，一个规则只能占一个位置——合并必然牺牲其中一头。共用键清单拿到了「只维护一份」的好处，又不碰执行时机。
+
+  > 实现上：列表定义多了 `extraActions`（渲染在「添加」的 + 左侧的动作按钮），`ListItemOption` 多了 `inheritAction`（按钮文字 / 提示 + 取源键清单的回调），合并规则是纯函数 `inheritYamlKeys()`（有单测）。这类「整份列表级别」的操作给带文字的按钮，比行内的编辑 / 删除更值得被看见。
+
+- **列表型设置项支持拖拽排序** — 此前只有「YAML 键排序」的「优先级排序」一个列表开了排序（且是上移 / 下移箭头按钮），其余列表（插入 YAML 属性的「要插入的键」、忽略文件夹 / 忽略文件 / 额外文件扩展名、各规则的忽略键列表、自定义正则替换）都只能增删。现在所有列表统一改为**拖拽手柄 + 拖放排序**：
+
+  - 每行左侧渲染一个 `lucide-grip-vertical` 手柄（`aria-label`「拖拽排序」）。只让手柄 `draggable`、行本身不设，这样在行内选中文本或点击编辑 / 删除按钮都不会误触发拖拽；拖拽影像用整行（`setDragImage`），不是小小的手柄。
+  - 落点由指针位于目标行的上半 / 下半决定，实时画一条强调色指示线（`is-drop-above` / `is-drop-below`）；被拖的行降到 40% 不透明度。
+  - 下标换算对齐 `onReorder(oldIndex, newIndex)` 的语义（先 `splice` 掉旧位置、再插到新位置）：先把落点化成「0..n 的插入缝隙」，若插入位在被拖项之后则减一，得到移除后的目标下标——否则向后拖会少一格。
+  - `ListItemOptionBuilder.allowReorder` 与 `createListManagementPage` 的 `allowReorder` 默认值改为 `true`（显式传 `false` 仍可关掉）。顺序对规则本身无意义的列表（忽略列表等）也一并开放，避免同一套界面出现两种交互。
+  - 原来的上移 / 下移箭头按钮已移除（`Move up` / `Move down` 两个文案键保留未删）。
+
+- **列表外观整理**（`src/css/linter.css`）— 条目行加悬停底色与圆角、手柄常态 `--text-faint` 悬停 `--text-muted`（与 Obsidian 原生 `grip-handle` 的取值一致）、拖拽落点指示线、正在拖拽的行淡化；「添加」行与条目行留出间距、按钮悬停染强调色。全部用主题变量，深浅色自适应；未引入任何内联样式。
+
+  > 经 `.verify` 验证台回归：模拟拖拽事件，`['aliases: ', 'tags: ']` → 把第 0 项拖到第 1 项下半得 `['tags: ', 'aliases: ']` → 再把第 1 项拖回第 0 项上半复原，落点指示线类名与「拖拽中」类的清除均符合预期。属性类型部分另有 `src/linter/utils/yaml-attributes.test.ts`（23 条单测）覆盖旧格式解析、归一化的数组引用约定、各类型的渲染与校验。
+
+### 变更
+
+- **YAML 标签页把「插入 YAML 属性 / YAML 键排序 / YAML 标题」提到最前** — 这三条是一条工作流：先决定「有哪些键」（插入 YAML 属性），再决定「键的顺序」（YAML 键排序），标题键由 YAML 标题补上；此前它们散落在 15 条规则的中间（第 7 / 12 / 14 位）。现在固定排在最前面，其余规则保持原有注册顺序。只调整**展示顺序**（`SettingTab.rulesOfType()` 里按别名前置），不动 `rules-registry` 的注册顺序与规则执行顺序。
+
+- **与 obsidian-linter 共存** — 内置 Linter 的代码移植自 obsidian-linter，连它写入 Obsidian **全局命名空间**的标识也一并照抄了，于是两个插件同时启用时必然相撞：
+
+  | 共享项 | 上游 obsidian-linter | 原值 | 现值 |
+  |---|---|---|---|
+  | 视图类型 | `linter-diff-preview` | `linter-diff-preview` | `style-tuner-linter-diff-preview` |
+  | CSS 类（16 个） | `.linter-diff-preview-view` / `.linter-diff-*` / `.linter-list-empty` / `.disabled-list-entry` / `.modal-heading` / `.confirm-modal-checkbox-container` / `.custom-row-description` / `.linter-border-bottom` 等 | 同名 | `style-tuner-linter-*` |
+  | 图标 id（5 个） | `lint-folder` / `lint-ignore-folder` / `lint-file` / `lint-ignored-file` / `lint-vault` | 同名 | `style-tuner-lint-*` |
+
+  - **视图类型是硬冲突**：`registerView` 对已存在的类型直接抛错，`Attempting to register an existing view type "linter-diff-preview"`，后加载的那个插件整个 onload 中断。这是用户报的故障，改为 `style-tuner-linter-diff-preview` 后两边各注册各的。
+  - **CSS 类与图标 id 是软冲突**：不报错，但两个插件的 styles.css 会用同一批选择子互相修饰对方的界面，图标表也会互相覆盖。现在全部加 `style-tuner-` 前缀，样式表与代码同步改名（`src/css/linter.css` 的选择器与 `diff-preview-view.ts` 等处的挂类一一对应，已用脚本核对 15 个视图类在源码样式表与构建产物里都在）。
+  - 视图类型常量处加了注释说明「不要改回上游名」，避免以后又被顺手简化。
+
+- **规则标签页的卡片拆分**（原 1.2.3）— 1.2.0 把每个规则分类下的全部规则合并成一张卡片，规则开启后它的子设置项与后一条规则的父级开关落在同一张卡片里，只有一条行分隔线相隔，分不清哪些行属于哪条规则。现在改为按**规则有没有子设置项**拆卡：`SettingTab.getRuleCategoryDefinitions()` 按 `rule.options.length > 1`（`options[0]` 是 Rule 构造时注入的 enabled 开关）判定——有的各自独立成卡片，没有的（纯开关）按原有顺序合并进相邻的卡片。按定义拆而不是按当前展开状态拆，卡片结构不会在开关切换时重排，开启规则只是让它那张卡片的行数变多；规则顺序保持不变。「内容规范」标签页的内容 / 标题 / 脚注 / 粘贴四个分组内部改用同一套拆分逻辑（经 `DefinitionsRenderer` 既有的嵌套 group 支持渲染成卡片内嵌卡片）。
+
+  > 说明：`SettingDefinitionGroup.items` 的公开类型只接受 `SettingDefinition` / `SettingDefinitionPage`，不含嵌套 group；`DefinitionsRenderer.renderGroup` 运行时本就支持 `child.type === 'group'`，这里按鸭子类型传入，类型上做一次收窄（`rulesToNestedGroups()`）。
+
+> 已核对无需改动的部分：命令 id（Obsidian 会自动加插件 id 前缀，本插件是 `style-tuner:*`，与 obsidian-linter 的 `obsidian-linter:*` 不撞）、设置页（内置 Linter 不注册独立设置页，设置项在 Style Tuner 面板内）、数据文件（`data-linter.json` 与 obsidian-linter 的 `data.json` 各自独立）。
+
+> 遗留说明：`src/linter/styles.css` 是从上游带过来的重复样式表副本，未被构建读取（`esbuild.config.mjs` 只聚合 `src/css/*.css`），本次未改动；如确认无用可另行删除。
+
+### 错误修复
+
+- **`ruleConfigs` 缺条目时 editor-change 崩溃**（原 1.2.4）— 报错栈为 CM6 `updateListener → editor-change`，指向 `LinterPlugin` 里 `ruleConfigs['yaml-timestamp']['update-on-file-contents-updated']` 的未防护读取。根因是 `loadSettings()` 用 `Object.assign` **浅合并** `data-linter.json`：保存该文件时还没有的规则（或选项）键会整个缺失，而补齐缺失规则默认值的逻辑只挂在 `app.workspace.onLayoutReady` 的 `makeSureSettingsFilledInAndCleanupSettings()` 里——`editor-change` 监听却在 `onload()` 的 `registerEventsAndSaveCallback()` 阶段就已注册，CodeMirror 建编辑器时派发的事务会落进这段窗口，读到 `undefined` 上的属性即抛错。这也解释了「出现一次、重启就好」：首次启动后补齐逻辑把键写进了 `data-linter.json`，之后再启动就不再缺。
+
+  三层修复：
+
+  1. **提前补齐**（根因）— 把补齐逻辑提取为 `fillInMissingRuleDefaults()`，改在 `loadSettings()` 里调用，`onload()` 注册任何监听器之前 `ruleConfigs` 就是完整的。补齐结果记在 `ruleDefaultsFilledOnLoad` 字段里，由 `makeSureSettingsFilledInAndCleanupSettings()` 用 `||=` 并进去决定是否落盘（不覆盖冲突规则修复已有的 `updateMade`）。
+  2. **读取收敛** — 两处重复的 `yaml-timestamp` 读取合并为 `getYamlTimestampUpdateTiming()`，用 `?.` 防护，缺失时按「不触发」（`Never`）处理。
+  3. **兜底** — `Rule.getOptions()` 在条目缺失时返回 `{}` 而不是 `undefined`，堵住 `applyIfEnabledBase()` 与 `RulesRunner` 里同型的直接解引用；`Option.setOption()` 补上与 `writeAndSave()` 一致的 `??=` 保护。
+
+  经 `.verify` 验证台复现：旧写法在补齐前稳定抛出与线上一致的报错；`loadSettings()` 后 `yaml-timestamp` 条目就位（`update-on-file-contents-updated: "never"`），其它已保存规则不受影响，全新安装可补齐全部 66 条规则。
+
+- **修复 diff 预览命令无法注销** — `LinterPlugin.removeCommand()` 用 `this.manifest.id`（门面类的 `style-tuner-linter`）拼命令 id，而命令是经 `host.addCommand()` 注册的，Obsidian 按**注册方**的 id（`style-tuner`）加前缀，于是拼出来的是个从不存在的 id，`removeDiffPreviewCommands()` 实际什么都没删掉——关掉「启用工作区差异预览」后命令仍留在命令面板里。改为直接走 `this.host.removeCommand()`，与 `addCommand` 走 `host` 保持一致。
+
+- **修掉三处顺带发现的老问题**：
+
+  - `apply()` 里 `options.textToInsert.reverse()` 是**就地反转**，而 `options.textToInsert` 与 settings 里那份是同一个数组——于是每次 lint 都会把列表顺序翻一遍，界面上的排序也跟着跳。改为 `[...entries].reverse()`。
+  - `yaml-key-sort` 的 `apply()` 同样在就地改写 `options.yamlKeyPrioritySortOrder`（把带冒号的键回写去掉冒号），改的是 settings 里那份数组。改为先 `[...source]` 复制再规整。
+  - `Rule.getDefaultOptions()` 对数组默认值改做**浅拷贝**：调用方（补齐缺失规则、启用规则）会把结果直接放进 `ruleConfigs`，而列表界面的增删与拖拽排序是就地改数组，共用同一份默认数组会把 option 自身的 `defaultValue` 改坏。
+
+### 插件审核复查（obsidianmd/eslint-plugin@0.4.2 `recommended`）
+
+对 `src/**` 重跑官方审核规则：**`obsidianmd/*` error 级 0 命中**，其中审核要点「Sets styles directly instead of using CSS classes, `setCssProps`, or `setCssStyles`」（`no-static-styles-assignment`）依旧零命中——本轮的列表外观 / 拖拽排序只新增 CSS 类与样式表规则，属性类型部分只读写配置文件，「继承」按钮只是读取另一条规则的配置，都没有引入任何内联样式写入。保留的 36 条 warn 与 1.2.1 复查时一致（`hardcoded-config-path` 20 条、`prefer-window-timers` 6 条、`no-global-this` 3 条、`settings-tab/prefer-setting-definitions` 2 条、`ui/sentence-case` 2 条，以及 `editor-drop-paste` / `object-assign` / `prefer-get-language` 各 1 条），均为有意为之，未新增。
+
+---
+
 ## 1.2.2 (2026-10-08)
 
 修复社区插件审核的驳回项：`manifest.json` 的插件描述含审核禁用词，并顺带修掉描述里不合规的字符。

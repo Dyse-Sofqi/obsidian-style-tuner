@@ -8,7 +8,7 @@ export class ConfirmRuleDisableModal extends Modal {
     super(app);
     this.modalEl.addClass('confirm-modal');
 
-    this.contentEl.createEl('h3', {text: getTextInLanguage('warning-text'), cls: 'modal-heading'});
+    this.contentEl.createEl('h3', {text: getTextInLanguage('warning-text'), cls: 'style-tuner-linter-modal-heading'});
 
     const noticeEl = this.contentEl.createEl('p');
     noticeEl.id = 'confirm-dialog';

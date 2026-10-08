@@ -79,14 +79,23 @@ export class Rule {
     const options: { [optionName: string]: unknown } = {};
 
     for (const option of this.options) {
-      options[option.configKey] = option.defaultValue;
+      // 数组默认值要浅拷贝一份：调用方（补齐缺失规则、启用规则）会把结果直接
+      // 放进 ruleConfigs，而列表界面的增删与拖拽排序是**就地**改数组——共用
+      // 同一份默认数组会把 option 自身的 defaultValue 改坏。
+      options[option.configKey] = Array.isArray(option.defaultValue)
+        ? [...option.defaultValue]
+        : option.defaultValue;
     }
 
     return options;
   }
 
   public getOptions(settings: LinterSettings) {
-    return settings.ruleConfigs[this.settingsKey];
+    // A rule with no entry in `ruleConfigs` (settings saved before the rule
+    // existed, or the startup window before the defaults are filled in) has to
+    // read as "no options", never as `undefined`: every caller dereferences the
+    // result straight away (`applyIfEnabledBase`, `RulesRunner`).
+    return settings.ruleConfigs[this.settingsKey] ?? {};
   }
 
   public getName(): string {

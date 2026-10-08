@@ -1,14 +1,14 @@
 /**
 * Setting item no border
 */
-.linter-no-border {
+.style-tuner-linter-no-border {
   border: none;
 }
 
 /**
 * Settings item border bottom
 */
-.linter-border-bottom {
+.style-tuner-linter-border-bottom {
   border-top: 0px;
   border-bottom: 1px solid var(--background-modifier-border);
   margin-bottom: .75em;
@@ -17,22 +17,22 @@
 /**
 * Custom row
 */
-.custom-row-description {
+.style-tuner-linter-custom-row-description {
   margin-top: 0px;
 }
 
 /**
 * Modal specific styles and search zero state
 */
-.modal-warn, .search-zero-state {
+.style-tuner-linter-modal-warn, .style-tuner-linter-search-zero-state {
   font-weight: bold;
 }
 
-.modal-heading, .search-zero-state {
+.style-tuner-linter-modal-heading, .style-tuner-linter-search-zero-state {
   text-align: center;
 }
 
-.confirm-modal-checkbox-container {
+.style-tuner-linter-confirm-modal-checkbox-container {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -40,12 +40,12 @@
 }
 
 /** disabled text **/
-.disabled-list-entry {
+.style-tuner-linter-disabled-list-entry {
   color: var(--text-faint);
 }
 
 /** Linter diff prview **/
-.linter-diff-preview-view {
+.style-tuner-linter-diff-preview-view {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -53,12 +53,12 @@
   overflow: hidden;
 }
 
-.linter-diff-preview-empty {
+.style-tuner-linter-diff-preview-empty {
   color: var(--text-muted);
   padding: 16px;
 }
 
-.linter-diff-preview-header {
+.style-tuner-linter-diff-preview-header {
   align-items: flex-start;
   border-bottom: 1px solid var(--background-modifier-border);
   display: flex;
@@ -68,11 +68,11 @@
   padding: 12px 14px;
 }
 
-.linter-diff-preview-title-group {
+.style-tuner-linter-diff-preview-title-group {
   min-width: 0;
 }
 
-.linter-diff-preview-header h3 {
+.style-tuner-linter-diff-preview-header h3 {
   font-size: var(--font-ui-medium);
   line-height: 1.3;
   margin: 0 0 6px;
@@ -81,20 +81,20 @@
   white-space: nowrap;
 }
 
-.linter-diff-preview-actions {
+.style-tuner-linter-diff-preview-actions {
   display: flex;
   flex: 0 0 auto;
   gap: 8px;
 }
 
-.linter-diff-preview-body {
+.style-tuner-linter-diff-preview-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
   padding: 12px 14px 16px;
 }
 
-.linter-diff-preview-view .linter-diff-summary {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-summary {
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -105,7 +105,7 @@
   padding: 5px 8px;
 }
 
-.linter-diff-preview-view .linter-diff {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff {
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -117,27 +117,27 @@
   padding: 6px 0;
 }
 
-.linter-diff-preview-view .linter-diff-line {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-line {
   display: grid;
   grid-template-columns: 26px minmax(0, 1fr);
   min-height: 20px;
   padding: 1px 10px 1px 0;
 }
 
-.linter-diff-preview-view .linter-diff-marker {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-marker {
   color: var(--text-muted);
   padding-right: 8px;
   text-align: right;
   user-select: none;
 }
 
-.linter-diff-preview-view .linter-diff-text {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-text {
   min-width: 0;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
 
-.linter-diff-preview-view .linter-diff-skip {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-skip {
   border-bottom: 1px solid var(--background-modifier-border);
   border-top: 1px solid var(--background-modifier-border);
   color: var(--text-faint);
@@ -147,17 +147,17 @@
   text-align: center;
 }
 
-.linter-diff-preview-view .linter-diff-added {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-added {
   background: rgba(var(--color-green-rgb), 0.12);
   color: var(--text-normal);
 }
 
-.linter-diff-preview-view .linter-diff-removed {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-removed {
   background: rgba(var(--color-red-rgb), 0.12);
   color: var(--text-normal);
 }
 
-.linter-diff-preview-view .linter-diff-context {
+.style-tuner-linter-diff-preview-view .style-tuner-linter-diff-context {
   color: var(--text-muted);
 }
 
@@ -183,6 +183,76 @@
   border-top: var(--setting-items-divider-width) solid var(--setting-items-divider-color);
 }
 
-.setting-group .linter-list-empty .setting-item-description {
+.setting-group .style-tuner-linter-list-empty .setting-item-description {
   color: var(--text-faint);
+}
+
+/**
+* 列表型设置项（可增删 / 拖拽排序）
+*
+* 条目行 = 左侧拖拽手柄 + 名称 / 说明 + 右侧编辑与删除按钮。
+* 行内原生分隔线保留（与设置面板其余卡片一致），只叠加悬停底色、
+* 圆角与拖拽落点指示线；颜色全部取自主题变量，深浅色自适应。
+*/
+.style-tuner-linter-list-row {
+  border-radius: var(--radius-s);
+  transition: background-color 120ms ease;
+}
+
+.style-tuner-linter-list-row:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* 拖拽手柄：常态 faint、悬停 muted（与 Obsidian 原生 grip-handle 一致） */
+.style-tuner-linter-list-drag-handle {
+  align-items: center;
+  align-self: center;
+  color: var(--text-faint);
+  cursor: grab;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  margin-right: var(--size-2-3, 6px);
+  transition: color 120ms ease;
+}
+
+.style-tuner-linter-list-drag-handle:hover {
+  color: var(--text-muted);
+}
+
+.style-tuner-linter-list-drag-handle:active {
+  cursor: grabbing;
+}
+
+.style-tuner-linter-list-drag-handle svg {
+  height: var(--icon-s);
+  width: var(--icon-s);
+}
+
+/* 正在被拖拽的行 */
+.style-tuner-linter-list-row.is-dragging {
+  opacity: 0.4;
+}
+
+/* 落点指示线：按指针位于行的上半 / 下半，画在行的上边或下边 */
+.style-tuner-linter-list-row.is-drop-above {
+  box-shadow: inset 0 2px 0 0 var(--interactive-accent);
+}
+
+.style-tuner-linter-list-row.is-drop-below {
+  box-shadow: inset 0 -2px 0 0 var(--interactive-accent);
+}
+
+/* 「添加」行：与条目行留一点间距，按钮悬停时染上强调色 */
+.style-tuner-linter-list-add-row {
+  margin-top: var(--size-2-2, 4px);
+}
+
+.style-tuner-linter-list-add-row .setting-item-control button {
+  color: var(--text-muted);
+  transition: color 120ms ease;
+}
+
+.style-tuner-linter-list-add-row .setting-item-control button:hover {
+  color: var(--text-accent);
 }

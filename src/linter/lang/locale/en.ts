@@ -119,6 +119,12 @@ export default {
     'no-whitespace': '"{TEXT}" cannot have any whitespace',
     'no-hashtag-in-tag': '"{TAG}" must not start with #',
     'invalid-tag': '"{TAG}" is not a valid Obsidian tag',
+    // rules/insert-yaml-attributes.ts
+    'invalid-property-key': '"{KEY}" is not a valid property key',
+    'invalid-number': '"{VALUE}" is not a number',
+    'invalid-checkbox': '"{VALUE}" must be true or false',
+    'invalid-date': '"{VALUE}" is not a date in YYYY-MM-DD form',
+    'invalid-datetime': '"{VALUE}" is not a date and time in YYYY-MM-DDTHH:mm form',
   },
 
   'notice-text': {
@@ -536,12 +542,34 @@ export default {
     // insert-yaml-attributes.ts
     'insert-yaml-attributes': {
       'name': 'Insert YAML attributes',
-      'description': 'Inserts the given YAML attributes into the YAML frontmatter. Put each attribute on a single line.',
+      'description': 'Inserts the given keys into the YAML frontmatter when they are missing, with a value shaped for the chosen property type.',
       'text-to-insert': {
-        'name': 'Text to insert',
-        'description': 'Text to insert into the YAML frontmatter',
-        'empty-state': 'No text to insert yet.',
+        'name': 'Keys to insert',
+        'description': 'Keys to insert into the YAML frontmatter',
+        'empty-state': 'No keys to insert yet.',
         'placeholder-text': 'YAML to insert',
+      },
+      'key': {
+        'name': 'Property key',
+        'placeholder': 'key',
+      },
+      'property-type': {
+        'name': 'Property type',
+        'reserved': 'The type of aliases, tags and cssclasses is fixed to a list by Obsidian, so it is locked here and is not written to types.json.',
+        'fixed-suffix': ' (fixed by Obsidian)',
+      },
+      'property-types': {
+        'text': 'Text',
+        'list': 'List',
+        'number': 'Number',
+        'checkbox': 'Checkbox',
+        'date': 'Date',
+        'datetime': 'Date & time',
+      },
+      'value': {
+        'name': 'Value (optional)',
+        'description': 'Leave empty to insert {YAML}.',
+        'list-hint': 'Separate list items with commas.',
       },
     },
     // line-break-at-document-end.ts
@@ -872,6 +900,8 @@ export default {
     'yaml-key-sort': {
       'name': 'YAML key sort',
       'description': 'Sorts the YAML keys based on the order and priority specified. <b>Note: may remove blank lines as well. Only works on non-nested keys.</b>',
+      'inherit-priority-keys': 'Merge the keys of the "Insert YAML attributes" rule into this list, keeping your own keys after them',
+      'inherit-priority-keys-label': 'Inherit "Keys to insert"',
       'yaml-key-priority-sort-order': {
         'name': 'YAML key priority sort order',
         'description': 'The order in which to sort keys with one on each line where it sorts in the order found in the list',

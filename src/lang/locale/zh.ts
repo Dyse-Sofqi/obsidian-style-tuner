@@ -75,6 +75,7 @@ export const zh = {
 	'Delete': '删除',
 	'Move up': '上移',
 	'Move down': '下移',
+	'Drag to reorder': '拖拽排序',
 	'CSS Snippets': 'CSS 片段',
 	'Color mode': '颜色模式',
 	'Theme': '主题',

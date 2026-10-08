@@ -505,13 +505,35 @@ export default {
     // insert-yaml-attributes.ts
     'insert-yaml-attributes': {
       'name': '插入 YAML 屬性',
-      'description': '將給定的 YAML 屬性插入到 YAML frontmatter 中。將每個屬性放在單獨的一行。',
+      'description': '筆記缺少這些鍵時，把指定屬性插入到 YAML frontmatter，並依所選屬性類型產生對應的值',
       'text-to-insert': {
-        'name': '要插入的文字',
-        'description': '要插入到 YAML frontmatter 中的文字',
-              'empty-state': '尚無要插入的文字。',
-  'placeholder-text': '要插入的 YAML',
-},
+        'name': '要插入的鍵',
+        'description': '要插入到 YAML frontmatter 中的鍵',
+        'empty-state': '尚無要插入的鍵。',
+        'placeholder-text': '要插入的 YAML',
+      },
+      'key': {
+        'name': '屬性鍵名',
+        'placeholder': '鍵名',
+      },
+      'property-type': {
+        'name': '屬性類型',
+        'reserved': 'aliases、tags、cssclasses 的類型由 Obsidian 固定為清單，這裡不可更改，也不會寫入 types.json。',
+        'fixed-suffix': '（Obsidian 固定）',
+      },
+      'property-types': {
+        'text': '文字',
+        'list': '清單',
+        'number': '數字',
+        'checkbox': '核取方塊',
+        'date': '日期',
+        'datetime': '日期時間',
+      },
+      'value': {
+        'name': '值（可留空）',
+        'description': '留空則插入 {YAML}。',
+        'list-hint': '清單項目之間以逗號分隔。',
+      },
     },
     // line-break-at-document-end.ts
     'line-break-at-document-end': {
@@ -817,6 +839,8 @@ export default {
     'yaml-key-sort': {
       'name': 'YAML 鍵排序',
       'description': '根據指定的順序和優先級對 YAML 鍵進行排序。<b>注意：也可能移除空白行。僅適用於非巢狀鍵。</b>',
+      'inherit-priority-keys': '把「要插入的鍵」按順序併入本清單，你自己新增的鍵保留在後面',
+      'inherit-priority-keys-label': '繼承「要插入的鍵」',
       'yaml-key-priority-sort-order': {
         'name': 'YAML 鍵優先級排序順序',
         'description': '對每行一個的鍵進行排序的順序，它會按照清單中找到的順序進行排序',
@@ -1027,5 +1051,11 @@ export default {
   'yaml-key-no-colon': '「{KEY}」應只包含 YAML 鍵本身，不帶冒號',
   'yaml-key-no-whitespace': '「{KEY}」不應包含首尾空白',
   'yaml-key-only': '「{KEY}」應只包含 YAML 鍵（可帶冒號）',
+  // rules/insert-yaml-attributes.ts
+  'invalid-property-key': '「{KEY}」不是有效的屬性鍵名',
+  'invalid-number': '「{VALUE}」不是數字',
+  'invalid-checkbox': '「{VALUE}」必須是 true 或 false',
+  'invalid-date': '「{VALUE}」不是 YYYY-MM-DD 形式的日期',
+  'invalid-datetime': '「{VALUE}」不是 YYYY-MM-DDTHH:mm 形式的日期時間',
 },
 };

@@ -25,7 +25,7 @@ export abstract class AddCustomRefreshableRow {
     this.containerEl.createDiv({cls: 'setting-item-name', text: this.name});
 
     const descriptionAndWarningContainer = this.containerEl.createDiv({cls: 'setting-item-description'});
-    setElContent(this.description, descriptionAndWarningContainer.createEl('p', {cls: 'custom-row-description'}));
+    setElContent(this.description, descriptionAndWarningContainer.createEl('p', {cls: 'style-tuner-linter-custom-row-description'}));
 
     new Setting(this.containerEl)
         .addButton((cb)=>{
@@ -39,7 +39,7 @@ export abstract class AddCustomRefreshableRow {
               .onClick(() => this.onRefresh());
           cb.buttonEl.addClass('clickable-icon');
         })
-        .setClass('linter-border-bottom')
+        .setClass('style-tuner-linter-border-bottom')
         .setDesc(this.warning ?? '')
         .descEl.addClass('mod-warning');
 

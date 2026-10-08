@@ -506,13 +506,35 @@ export default {
     // insert-yaml-attributes.ts
     'insert-yaml-attributes': {
       'name': '插入 YAML 属性',
-      'description': '把指定的 YAML 键插入到 YAML Front-matter 中。每个键占一行',
+      'description': '笔记缺少这些键时，把指定属性插入到 YAML Front-matter，并按所选属性类型生成对应的值',
       'text-to-insert': {
         'name': '要插入的键',
         'description': '要插入到 YAML Front-matter 中的键',
-              'empty-state': '尚无要插入的文本。',
-  'placeholder-text': '要插入的 YAML',
-},
+        'empty-state': '尚无要插入的键。',
+        'placeholder-text': '要插入的 YAML',
+      },
+      'key': {
+        'name': '属性键名',
+        'placeholder': '键名',
+      },
+      'property-type': {
+        'name': '属性类型',
+        'reserved': 'aliases、tags、cssclasses 的类型由 Obsidian 固定为列表，这里不可更改，也不会写入 types.json。',
+        'fixed-suffix': '（Obsidian 固定）',
+      },
+      'property-types': {
+        'text': '文本',
+        'list': '列表',
+        'number': '数字',
+        'checkbox': '复选框',
+        'date': '日期',
+        'datetime': '日期时间',
+      },
+      'value': {
+        'name': '值（可留空）',
+        'description': '留空则插入 {YAML}。',
+        'list-hint': '列表项之间用逗号分隔。',
+      },
     },
     // line-break-at-document-end.ts
     'line-break-at-document-end': {
@@ -818,6 +840,8 @@ export default {
     'yaml-key-sort': {
       'name': 'YAML 键排序',
       'description': '根据指定的顺序和优先级对 YAML 键进行排序。<b>注意，也许也会删除空行</b>',
+      'inherit-priority-keys': '把「要插入的键」按顺序并入本列表，你自己添加的键保留在后面',
+      'inherit-priority-keys-label': '继承「要插入的键」',
       'yaml-key-priority-sort-order': {
         'name': 'YAML 键优先级排序顺序',
         'description': '对键进行排序的顺序，每行一个键，按列表中的顺序进行排序',
@@ -1022,5 +1046,11 @@ export default {
   'yaml-key-no-colon': '“{KEY}”应只包含 YAML 键本身，不带冒号',
   'yaml-key-no-whitespace': '“{KEY}”不应包含首尾空白',
   'yaml-key-only': '“{KEY}”应只包含 YAML 键（可带冒号）',
+  // rules/insert-yaml-attributes.ts
+  'invalid-property-key': '“{KEY}”不是有效的属性键名',
+  'invalid-number': '“{VALUE}”不是数字',
+  'invalid-checkbox': '“{VALUE}”必须是 true 或 false',
+  'invalid-date': '“{VALUE}”不是 YYYY-MM-DD 形式的日期',
+  'invalid-datetime': '“{VALUE}”不是 YYYY-MM-DDTHH:mm 形式的日期时间',
 },
 };

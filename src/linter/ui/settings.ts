@@ -89,43 +89,46 @@ export class SettingTab extends PluginSettingTab {
   }
 
   /**
-   * 单个规则分类的设置项（该分类全部规则合并成的单张卡片）。
+   * 单个规则分类的设置项。
+   *
+   * 会展开子设置项的规则各自独立成卡片；只有开关、没有子设置项的规则按原有
+   * 顺序合并进相邻的卡片。这样规则开启后，它的子设置项与下一条规则的父级
+   * 开关之间隔着卡片边界，不会再出现「子设置项和后面的父设置项同级、边界
+   * 判定模糊」的问题。
+   *
    * 由 Style Tuner 面板的「YAML规范」「空行规范」标签页展示；
    * 粘贴类已并入「内容规范」标签页（getContentRulesDefinitions）。
    */
   getRuleCategoryDefinitions(ruleType: RuleType): SettingDefinitionItem<LinterSettingsKeys>[] {
-    return [
-      {
-        type: 'group',
-        items: this.ruleCategoryItems(ruleType),
-      },
-    ];
+    return this.rulesToGroups(this.rulesOfType(ruleType));
   }
 
   /**
-   * 「内容规范」标签页：内容、标题、脚注、粘贴四个分组，各自带标题与卡片。
+   * 「内容规范」标签页：内容、标题、脚注、粘贴四个分组，各自带标题；
+   * 分组内部同样按 rulesToGroups 拆分，展开子设置项的规则独立成卡，
+   * 与「YAML规范」「空行规范」两个标签页的拆法保持一致。
    */
   getContentRulesDefinitions(): SettingDefinitionItem<LinterSettingsKeys>[] {
     return [
       {
         type: 'group',
         heading: getTextInLanguage(tabNameKeys.Content),
-        items: this.ruleCategoryItems(RuleType.CONTENT),
+        items: this.rulesToNestedGroups(RuleType.CONTENT),
       },
       {
         type: 'group',
         heading: getTextInLanguage(tabNameKeys.Heading),
-        items: this.ruleCategoryItems(RuleType.HEADING),
+        items: this.rulesToNestedGroups(RuleType.HEADING),
       },
       {
         type: 'group',
         heading: getTextInLanguage(tabNameKeys.Footnote),
-        items: this.ruleCategoryItems(RuleType.FOOTNOTE),
+        items: this.rulesToNestedGroups(RuleType.FOOTNOTE),
       },
       {
         type: 'group',
         heading: getTextInLanguage(tabNameKeys.Paste),
-        items: this.ruleCategoryItems(RuleType.PASTE),
+        items: this.rulesToNestedGroups(RuleType.PASTE),
       },
     ];
   }
@@ -149,13 +152,79 @@ export class SettingTab extends PluginSettingTab {
     return [this.pageAsCard(this.customRegexesPage())];
   }
 
-  private ruleCategoryItems(ruleType: RuleType): SettingGroupItem<LinterSettingsKeys>[] {
+  /**
+   * YAML 标签页里固定排在最前面的三条规则。
+   *
+   * 它们是一条工作流：先决定「有哪些键」（插入 YAML 属性），再决定「键的顺序」
+   * （YAML 键排序），标题键由 YAML 标题补上。这里只调整**展示顺序**，
+   * 不碰注册顺序（rules-registry 的导入顺序）与规则执行顺序。
+   */
+  private static readonly yamlTabPinnedRuleAliases = [
+    'insert-yaml-attributes',
+    'yaml-key-sort',
+    'yaml-title',
+  ];
+
+  private rulesOfType(ruleType: RuleType): Rule[] {
     const rules = ruleTypeToRules.get(ruleType) ?? [];
-    const items: SettingGroupItem<LinterSettingsKeys>[] = [];
-    for (const rule of rules) {
-      items.push(...this.ruleToItems(rule));
+    if (ruleType !== RuleType.YAML) return rules;
+
+    const pinned: Rule[] = [];
+    for (const alias of SettingTab.yamlTabPinnedRuleAliases) {
+      const rule = rules.find((candidate) => candidate.alias === alias);
+      if (rule) pinned.push(rule);
     }
-    return items;
+
+    return [
+      ...pinned,
+      ...rules.filter((rule) => !SettingTab.yamlTabPinnedRuleAliases.includes(rule.alias)),
+    ];
+  }
+
+  /**
+   * 规则列表 → 设置分组（卡片）列表。
+   *
+   * 判定依据是规则「有没有子设置项」，而不是「当前有没有展开」：
+   * `rule.options[0]` 是 Rule 构造时注入的 enabled 开关，长度 > 1 才说明这条
+   * 规则开启后会展开更多设置项。按定义拆而不是按状态拆，卡片结构不会在开关
+   * 切换时重排（开启规则只是让它那张卡片的行数变多）。
+   *
+   * 没有子设置项的规则（只有开关）连续排列时合并进同一张卡片，避免为纯开关
+   * 规则铺开一堆单行卡片；规则的原有顺序保持不变。
+   */
+  private rulesToGroups(rules: Rule[]): SettingDefinitionGroup<LinterSettingsKeys>[] {
+    const groups: SettingDefinitionGroup<LinterSettingsKeys>[] = [];
+    let plainItems: SettingGroupItem<LinterSettingsKeys>[] = [];
+    const flushPlainItems = (): void => {
+      if (plainItems.length === 0) return;
+      groups.push({ type: 'group', items: plainItems });
+      plainItems = [];
+    };
+
+    for (const rule of rules) {
+      const items = this.ruleToItems(rule);
+      if (rule.options.length > 1) {
+        flushPlainItems();
+        groups.push({ type: 'group', items });
+      } else {
+        plainItems.push(...items);
+      }
+    }
+    flushPlainItems();
+
+    return groups;
+  }
+
+  /**
+   * 规则列表 → 嵌在分类分组里的设置项（供「内容规范」用）。
+   *
+   * `SettingDefinitionGroup.items` 的公开类型只接受 `SettingDefinition` /
+   * `SettingDefinitionPage`，不含嵌套 group；`DefinitionsRenderer.renderGroup`
+   * 运行时支持 `child.type === 'group'`（渲染成卡片内嵌卡片），这里按鸭子
+   * 类型传入，类型上做一次收窄。
+   */
+  private rulesToNestedGroups(ruleType: RuleType): SettingGroupItem<LinterSettingsKeys>[] {
+    return this.rulesToGroups(this.rulesOfType(ruleType)) as unknown as SettingGroupItem<LinterSettingsKeys>[];
   }
 
   private generalDefinitions(): SettingDefinitionItem<LinterSettingsKeys>[] {
@@ -455,7 +524,7 @@ export class SettingTab extends PluginSettingTab {
           setting.addTextArea((cb) => {
             cb.inputEl.readOnly = true;
             cb.setValue(JSON.stringify(settings, null, 2));
-            cb.inputEl.addClass('linter-debug-readonly');
+            cb.inputEl.addClass('style-tuner-linter-debug-readonly');
           });
         },
       },
@@ -480,7 +549,7 @@ export class SettingTab extends PluginSettingTab {
           setting.addTextArea((cb) => {
             cb.inputEl.readOnly = true;
             cb.setValue(logsFromLastRun.join('\n'));
-            cb.inputEl.addClass('linter-debug-readonly');
+            cb.inputEl.addClass('style-tuner-linter-debug-readonly');
           });
         },
       },

@@ -1,5 +1,7 @@
 import { Example, Options, Rule, RuleType, registerRule, wrapLintError } from '../rules';
-import { BooleanOption, DropdownOption, DropdownRecord, MomentFormatOption, Option, ListItemOption, TextOption } from '../option';
+import { BooleanOption, DropdownOption, DropdownRecord, MomentFormatOption, Option, ListItemOption, TextOption, YamlAttributeOption } from '../option';
+import type { ListItemInheritAction } from '../option';
+import { YamlAttributeEntry } from '../utils/yaml-attributes';
 import { logDebug, timingBegin, timingEnd } from '../utils/logger';
 import { getTextInLanguage, LanguageStringKey } from '../lang/helpers';
 import { IgnoreType, IgnoreTypes } from '../utils/ignore-types';
@@ -302,19 +304,24 @@ export class ListItemOptionBuilder<TOptions extends Options> extends OptionBuild
   private fieldNamePlaceholderKey: LanguageStringKey;
   private allowReorder: boolean;
   private trimItemWhitespace: boolean;
-  constructor(args: OptionBuilderConstructorArgs<TOptions, string[]> & { validator?: ListItemValidation, emptyStateKey: LanguageStringKey, fieldNamePlaceholderKey: LanguageStringKey, allowReorder?: boolean, trimItemWhitespace?: boolean }) {
+  private inheritAction?: ListItemInheritAction;
+  constructor(args: OptionBuilderConstructorArgs<TOptions, string[]> & { validator?: ListItemValidation, emptyStateKey: LanguageStringKey, fieldNamePlaceholderKey: LanguageStringKey, allowReorder?: boolean, trimItemWhitespace?: boolean, inheritAction?: ListItemInheritAction }) {
     super(args);
 
     this.validator = args.validator;
     this.emptyStateKey = args.emptyStateKey;
     this.fieldNamePlaceholderKey = args.fieldNamePlaceholderKey;
-    this.allowReorder = args.allowReorder ?? false;
+    // 列表默认允许拖拽排序：所有列表型设置项（要插入的键、忽略列表、
+    // 自定义正则……）都提供统一的拖拽手柄。顺序对规则无意义的列表也一并
+    // 开放，避免同一套界面出现两种交互。需要关掉时显式传 false。
+    this.allowReorder = args.allowReorder ?? true;
     this.trimItemWhitespace = args.trimItemWhitespace ?? false;
+    this.inheritAction = args.inheritAction;
   }
 
 
   protected buildOption(): Option {
-    return new ListItemOption(this.configKey, this.nameKey, this.descriptionKey, this.defaultValue ?? [], null, this.validator, this.emptyStateKey, this.fieldNamePlaceholderKey, this.allowReorder, this.trimItemWhitespace);
+    return new ListItemOption(this.configKey, this.nameKey, this.descriptionKey, this.defaultValue ?? [], null, this.validator, this.emptyStateKey, this.fieldNamePlaceholderKey, this.allowReorder, this.trimItemWhitespace, this.inheritAction);
   }
 
   setRuleOption(ruleOptions: TOptions, options: Options) {
@@ -334,6 +341,25 @@ export class ListItemOptionBuilder<TOptions extends Options> extends OptionBuild
 export class TextOptionBuilder<TOptions extends Options> extends OptionBuilder<TOptions, string> {
   protected buildOption(): Option {
     return new TextOption(this.configKey, this.nameKey, this.descriptionKey, this.defaultValue);
+  }
+}
+
+/**
+ * 「插入 YAML 属性」的条目列表构建器：每条是 `{键名, 属性类型, 默认值}`。
+ *
+ * 用基类的 setRuleOption 即可（整份条目数组原样透传）——顺序、类型都由
+ * `YamlAttributeOption` 自己处理，不需要 ListItemOptionBuilder 那种去空串的清理。
+ */
+export class YamlAttributeOptionBuilder<TOptions extends Options> extends OptionBuilder<TOptions, YamlAttributeEntry[]> {
+  private emptyStateKey: LanguageStringKey;
+
+  constructor(args: OptionBuilderConstructorArgs<TOptions, YamlAttributeEntry[]> & { emptyStateKey: LanguageStringKey }) {
+    super(args);
+    this.emptyStateKey = args.emptyStateKey;
+  }
+
+  protected buildOption(): Option {
+    return new YamlAttributeOption(this.configKey, this.nameKey, this.descriptionKey, this.defaultValue ?? [], null, this.emptyStateKey);
   }
 }
 

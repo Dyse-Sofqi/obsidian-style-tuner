@@ -60,10 +60,12 @@ const ignoreFolderSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100" hei
 </svg>`;
 
 // exported SVG info
+// Ids are namespaced under this plugin: they land in Obsidian's global icon
+// registry, which upstream obsidian-linter also writes `lint-*` ids into.
 export const iconInfo: Record<string, {id: string, source: string}> = {
-  folder: {id: 'lint-folder', source: lintFolderSVG},
-  ignoreFolder: {id: 'lint-ignore-folder', source: ignoreFolderSVG},
-  file: {id: 'lint-file', source: lintFileSVG},
-  ignoreFile: {id: 'lint-ignored-file', source: ignoreFileSVG},
-  vault: {id: 'lint-vault', source: lintVaultSVG},
+  folder: {id: 'style-tuner-lint-folder', source: lintFolderSVG},
+  ignoreFolder: {id: 'style-tuner-lint-ignore-folder', source: ignoreFolderSVG},
+  file: {id: 'style-tuner-lint-file', source: lintFileSVG},
+  ignoreFile: {id: 'style-tuner-lint-ignored-file', source: ignoreFileSVG},
+  vault: {id: 'style-tuner-lint-vault', source: lintVaultSVG},
 } as const;

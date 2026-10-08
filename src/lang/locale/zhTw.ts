@@ -7,4 +7,5 @@ export const zhTw = {
 	'Delete': '刪除',
 	'Move up': '上移',
 	'Move down': '下移',
+	'Drag to reorder': '拖曳排序',
 };

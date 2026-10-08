@@ -1,8 +1,18 @@
-import {App, displayTooltip} from 'obsidian';
+import {App, displayTooltip, DropdownComponent} from 'obsidian';
 import {getTextInLanguage, LanguageStringKey} from '../../lang/helpers';
 import { CustomReplace, FileToIgnore } from "../../settings-data";
+import {
+  describeYamlAttributeSkeleton,
+  fixedPropertyTypeFor,
+  isYamlPropertyType,
+  validateYamlAttribute,
+  YAML_PROPERTY_TYPE_LABEL_KEY,
+  YAML_PROPERTY_TYPES,
+  type YamlAttributeEntry,
+  type YamlPropertyType,
+} from '../../utils/yaml-attributes';
 import FolderSuggester from '../suggesters/folder-suggester';
-import {FormModal} from './form-modal';
+import {FormField, FormModal} from './form-modal';
 
 const filesToIgnoreDefaultFlags = 'i';
 const customRegexDefaultFlags = 'gm';
@@ -280,6 +290,140 @@ export class CustomRegexModal extends FormModal {
 }
 
 export type ListItemValidation = (entry: string) => [boolean, string];
+
+/**
+ * 「插入 YAML 属性」的条目表单：键名 + 属性类型 + 默认值。
+ *
+ * 值留空时按类型插入骨架（文本 `键:`、列表 `键: []`、数字 `键: 0`、
+ * 复选框 `键: false`、日期 / 日期时间取当天），帮助文案里实时显示会插入什么。
+ *
+ * `aliases` / `tags` / `cssclasses` 的类型被 Obsidian 写死（都是多值属性），
+ * 键名一改成这三个，类型下拉就会锁到「列表」并禁用——不然用户选「数字」会得到
+ * `tags: 0` 这种与 Obsidian 固定类型打架的值。
+ */
+export class YamlAttributeModal extends FormModal {
+  private key: string;
+  private type: YamlPropertyType;
+  private value: string;
+  private keyInputEl: HTMLInputElement | undefined;
+  private valueInputEl: HTMLInputElement | undefined;
+  private valueField: FormField | undefined;
+  private typeDropdown: DropdownComponent | undefined;
+
+  constructor(
+      app: App,
+      initial: YamlAttributeEntry | null,
+      private onSubmitEntry: (entry: YamlAttributeEntry) => void | Promise<void>,
+  ) {
+    super(app);
+    this.key = initial?.key ?? '';
+    this.type = initial?.type ?? 'text';
+    this.value = initial?.value ?? '';
+
+    this.setTitle(getTextInLanguage(initial ? 'edit-tooltip' : 'add-tooltip'));
+
+    this.addField((field) => {
+      field.setName(getTextInLanguage('rules.insert-yaml-attributes.key.name'));
+      field.addText((cb) => {
+        cb.setPlaceholder(getTextInLanguage('rules.insert-yaml-attributes.key.placeholder'))
+            .setValue(this.key)
+            .onChange((v) => {
+              this.key = v;
+              this.refreshHints();
+            });
+        this.keyInputEl = cb.inputEl;
+      });
+    });
+
+    this.addField((field) => {
+      field.setName(getTextInLanguage('rules.insert-yaml-attributes.property-type.name'));
+      field.addDropdown((cb) => {
+        for (const type of YAML_PROPERTY_TYPES) {
+          cb.addOption(type, getTextInLanguage(YAML_PROPERTY_TYPE_LABEL_KEY[type]));
+        }
+        cb.setValue(this.type).onChange((v) => {
+          this.type = isYamlPropertyType(v) ? v : 'text';
+          this.refreshHints();
+        });
+        this.typeDropdown = cb;
+      });
+    });
+
+    this.valueField = this.addField((field) => {
+      field.setName(getTextInLanguage('rules.insert-yaml-attributes.value.name'));
+      field.addText((cb) => {
+        cb.setValue(this.value).onChange((v) => {
+          this.value = v;
+        });
+        this.valueInputEl = cb.inputEl;
+      });
+    });
+
+    this.refreshHints();
+  }
+
+  onOpen() {
+    this.keyInputEl?.focus();
+  }
+
+  /** 值留空时插入的骨架 + 保留键说明，实时跟着键名 / 类型更新。 */
+  private refreshHints() {
+    const key = this.key.trim();
+    const fixedType = fixedPropertyTypeFor(key);
+    if (fixedType) {
+      // 保留键：类型锁定到 Obsidian 固定的那个，下拉禁用
+      this.type = fixedType;
+      this.typeDropdown?.setValue(fixedType).setDisabled(true);
+    } else {
+      this.typeDropdown?.setDisabled(false);
+    }
+
+    const skeleton = describeYamlAttributeSkeleton({
+      key: key || getTextInLanguage('rules.insert-yaml-attributes.key.placeholder'),
+      type: this.type,
+      value: '',
+    });
+
+    const hints = [
+      getTextInLanguage('rules.insert-yaml-attributes.value.description').replace('{YAML}', skeleton),
+    ];
+    if (this.type === 'list') {
+      hints.push(getTextInLanguage('rules.insert-yaml-attributes.value.list-hint'));
+    }
+    if (fixedType) {
+      hints.push(getTextInLanguage('rules.insert-yaml-attributes.property-type.reserved'));
+    }
+
+    this.valueField?.setHelp(hints.join(' '));
+    this.valueInputEl?.setAttribute('placeholder', skeleton);
+  }
+
+  onSubmit() {
+    // 键名统一去掉首尾空白后再校验，避免用户多打一个空格就报错；
+    // 保留键的类型再兜一次底，防止有人绕过界面直接改 data-linter.json
+    const key = this.key.trim();
+    const entry: YamlAttributeEntry = {
+      key,
+      type: fixedPropertyTypeFor(key) ?? this.type,
+      value: this.value.trim(),
+    };
+
+    const result = validateYamlAttribute(entry);
+    if (!result.ok) {
+      const isValueError = result.params?.VALUE !== undefined;
+      const target = isValueError ? this.valueInputEl : this.keyInputEl;
+      let message = getTextInLanguage(result.messageKey);
+      for (const [name, value] of Object.entries(result.params ?? {})) {
+        message = message.replace(`{${name}}`, value);
+      }
+      if (target) displayTooltip(target, message, {classes: ['mod-error']});
+      return;
+    }
+
+    void this.onSubmitEntry(entry);
+    this.close();
+  }
+}
 
 export class ListItemsModal extends FormModal {
   private value: string;

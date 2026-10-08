@@ -77,6 +77,7 @@ export const en = {
 	'Delete': 'Delete',
 	'Move up': 'Move up',
 	'Move down': 'Move down',
+	'Drag to reorder': 'Drag to reorder',
 	'CSS Snippets': 'CSS Snippets',
 	'Color mode': 'Color mode',
 	'Theme': 'Theme',

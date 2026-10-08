@@ -3,6 +3,7 @@ import RuleBuilder, {BooleanOptionBuilder, DropdownOptionBuilder, ExampleBuilder
 import dedent from 'ts-dedent';
 import {parseYAML, getYAMLText, loadYAML, setYamlSection, astToString, getEmptyDocument} from '../utils/yaml';
 import { isValidYamlKeyOnly } from '../utils/validation';
+import { yamlAttributeKeys } from '../utils/yaml-attributes';
 import {escapeDollarSigns} from '../utils/regex';
 import {Document, CST} from 'yaml';
 import {YamlCSTTokens, YamlNode} from '../typings/yaml';
@@ -47,7 +48,8 @@ export default class YamlKeySort extends RuleBuilder<YamlKeySortOptions> {
     const yamlText = oldYaml;
     const priorityAtStartOfYaml: boolean = options.priorityKeysAtStartOfYaml;
 
-    const yamlKeys: string[] = options.yamlKeyPrioritySortOrder;
+    // 先复制再规整：源数组就是 settings 里那份，就地改写会把用户的配置改坏
+    const yamlKeys: string[] = [...(options.yamlKeyPrioritySortOrder ?? [])];
     let index = 0;
     for (let key of yamlKeys) {
       key = key.trimEnd();
@@ -294,6 +296,16 @@ export default class YamlKeySort extends RuleBuilder<YamlKeySortOptions> {
         optionsKey: 'yamlKeyPrioritySortOrder',
         allowReorder: true,
         validator: isValidYamlKeyOnly,
+        // 「继承」按钮：把「要插入的键」并入本列表（源的键在前、自己加的键跟在后），
+        // 免得同一批键在两处维护。是并入不是覆盖——见 inheritYamlKeys。
+        inheritAction: {
+          labelKey: 'rules.yaml-key-sort.inherit-priority-keys-label',
+          tooltipKey: 'rules.yaml-key-sort.inherit-priority-keys',
+          getKeys: (plugin) =>
+            yamlAttributeKeys(
+              plugin.settings.ruleConfigs['insert-yaml-attributes']?.['text-to-insert']
+            ),
+        },
       }),
       new BooleanOptionBuilder({
         OptionsClass: YamlKeySortOptions,
