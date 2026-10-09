@@ -64,6 +64,9 @@ export const zh = {
 
 	// Commands
 	'Show Style Tuner view': '打开 Style Tuner 视图',
+	// 左功能区里指向 Obsidian 内置命令的按钮
+	'Reload Obsidian': '重新加载 Obsidian',
+	'Toggle light/dark mode': '切换浅色/深色模式',
 
 	// Appearance (color mode / theme / CSS snippets)
 	'Style Settings': '样式设置',

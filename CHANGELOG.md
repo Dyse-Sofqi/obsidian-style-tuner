@@ -4,6 +4,23 @@
 
 ---
 
+## 1.2.7 (2026-10-09)
+
+左功能区（ribbon）新增三个按钮，自上而下依次是：**重新加载 Obsidian**、**切换浅色/深色模式**、**打开 Style Tuner 视图**。后两个此前都得绕命令面板，现在一键可达。
+
+### 新增功能
+
+- **左功能区三个按钮** — 图标分别是 lucide 的 `refresh-ccw` / `eclipse` / `paintbrush`。
+
+  - **顺序即注册顺序**：左功能区（`workspace.leftRibbon`）按 `addRibbonIcon()` 的调用先后自上而下追加，所以代码里的调用顺序就是图标在侧栏里的上下顺序。
+  - **三个按钮都经命令系统派发**，而不是各自直接实现一遍：打开视图走本插件注册的 `style-tuner:show-view`，另两个走 Obsidian 内置的 `app:reload` 与 `theme:toggle-light-dark`。这样按钮与命令永远只有一份行为 —— 以后改命令的 callback，按钮会跟着变，不会两边各自漂移。
+  - `app.commands` 与 `executeCommandById` **不在公开的 `obsidian.d.ts` 里** → 按项目约定 `as` 收窄 + 能力探测，统一收在 `dispatchCommand()` 一个方法里。「打开视图」按钮探测失败时退回直接调 `activateView()`；另两个指向的是内置命令，没有可自行实现的等价回退。
+  - 内置命令的 id 是 **`theme:toggle-light-dark`**，不是 `theme:toggle-theme`。这两条 id 是从本机 `F:\_Software\Obsidian\resources\obsidian.asar` 里核过原文的：`t.addCommand({id:"theme:toggle-light-dark",name:db.commands.toggleLightDarkMode(),…})`，中文名「切换浅色/深色模式」；`app:reload` 同理，中文名「重新加载 Obsidian（不保存当前编辑内容）」。
+  - 新增两个文案键 `Reload Obsidian` / `Toggle light/dark mode`，只写进 `en.ts` 与 `zh.ts`，其余语言包走 `t()` 的 `|| en[str]` 回退 —— 本仓库 24 个语言包里 19 个本来就是空壳，`de` / `nl` / `zhTw` 也各有缺项，与既有做法一致。
+  - 插件命令 id 由 `${this.manifest.id}:show-view` 拼出（Obsidian 用注册插件的 id 做命名空间），不硬编码插件 id 字面量。
+
+---
+
 ## 1.2.6 (2026-10-08)
 
 把全部列表型设置项（要插入的键、各类忽略列表、自定义正则等）统一整理了外观、支持拖拽排序；「插入 YAML 属性」的键可以指定属性类型；「YAML 键排序」可以从它继承键顺序。同时把内置 Linter 占用的全局命名空间（视图类型、CSS 类、图标 id）全部收窄到本插件自己的前缀下，与 obsidian-linter 可以同时启用而不再互相顶掉。

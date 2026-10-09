@@ -66,6 +66,9 @@ export const en = {
 
 	// Commands
 	'Show Style Tuner view': 'Show Style Tuner view',
+	// Ribbon buttons for Obsidian's own commands
+	'Reload Obsidian': 'Reload Obsidian',
+	'Toggle light/dark mode': 'Toggle light/dark mode',
 
 	// Appearance (color mode / theme / CSS snippets)
 	'Style Settings': 'Style Settings',

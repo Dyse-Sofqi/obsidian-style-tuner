@@ -62,6 +62,27 @@ export default class CSSSettingsPlugin extends Plugin {
 			},
 		});
 
+		// 左功能区按钮。左功能区是**按注册先后**自上而下追加的，所以这里的调用
+		// 顺序就是图标从上到下的顺序：重新加载 → 切换深浅色 → 打开 Style Tuner 视图。
+		// 三个按钮都经命令系统派发（而不是各自直接实现一遍），与命令保持同一份行为。
+		this.addRibbonIcon('refresh-ccw', t('Reload Obsidian'), () => {
+			// Obsidian 内置命令，id 自带 `app:` 命名空间
+			this.dispatchCommand('app:reload');
+		});
+
+		this.addRibbonIcon('eclipse', t('Toggle light/dark mode'), () => {
+			// 内置命令的 id 是 `theme:toggle-light-dark`（不是 toggle-theme）
+			this.dispatchCommand('theme:toggle-light-dark');
+		});
+
+		this.addRibbonIcon('paintbrush', t('Show Style Tuner view'), () => {
+			// 本插件自己注册的命令：`show-view` 由 Obsidian 在前面补插件 id；
+			// 派发不出去（拿不到命令系统）时退回直接打开视图，功能不受影响。
+			if (!this.dispatchCommand(`${this.manifest.id}:show-view`)) {
+				this.activateView();
+			}
+		});
+
 		this.registerEvent(
 			(this.app.workspace as any).on(
 				'css-change',
@@ -361,6 +382,23 @@ export default class CSSSettingsPlugin extends Plugin {
 		// 一起重置（插件审核规范 obsidianmd/detach-leaves），插件卸载时
 		// Obsidian 会自行清理本插件注册的视图叶子。
 		this.unregisterSettingsFromSettingsSearch();
+	}
+
+	/**
+	 * 通过 Obsidian 的命令系统派发一条命令，返回是否真的派发出去。
+	 * `id` 必须是**带命名空间的完整 id**（`app:reload`、`theme:toggle-light-dark`、
+	 * `style-tuner:show-view`）——Obsidian 只给插件自己 `addCommand` 注册的命令补前缀。
+	 *
+	 * `app.commands` 与 `executeCommandById` 都不在公开的 `obsidian.d.ts` 里
+	 * → 按项目约定 `as` 收窄 + 能力探测，调用方据此决定回退。
+	 */
+	private dispatchCommand(id: string): boolean {
+		const commands = (this.app as any).commands;
+		if (typeof commands?.executeCommandById !== 'function') {
+			return false;
+		}
+		commands.executeCommandById(id);
+		return true;
 	}
 
 	deactivateView() {
