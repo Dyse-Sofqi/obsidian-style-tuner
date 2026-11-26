@@ -282,7 +282,7 @@ export default {
       },
       'remove-empty-yaml-properties': {
         'name': 'Remove properties with no value',
-        'description': 'When a note is opened, delete frontmatter properties that have no value (a key with nothing after the colon). Lists, empty lists, empty strings and an explicit null all count as values and are left alone.',
+        'description': 'When a note is opened, delete frontmatter properties with no content: a key with nothing after the colon, an empty list `[]`, or an empty object `{}`. Lists with items, empty strings and an explicit null are kept.',
       },
     },
     'debug': {

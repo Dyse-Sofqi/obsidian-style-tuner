@@ -1,24 +1,31 @@
-import { isMap, isScalar, parseDocument } from 'yaml';
+import { isMap, isScalar, isSeq, parseDocument } from 'yaml';
 
 /**
  * frontmatter「空值属性」清理。
  *
- * 打开笔记时把 YAML 里**没有任何值**的属性删掉（`key:`、`key:   ` 这类由
- * Obsidian 属性面板留下的空壳），让 frontmatter 保持简洁。
+ * 打开笔记时把 YAML 里**没有任何内容**的属性删掉（`key:`、`key:   ` 这类由
+ * Obsidian 属性面板留下的空壳，以及 `key: []` / `key: {}` 这种空集合），让
+ * frontmatter 保持简洁。
  *
  * 判定完全交给 YAML 解析器，而不是按行做正则，原因只有一个：**看起来没值的
  * 行往往是有值的**。
  *
  *   aliases:          ← 看着是空的，实际值是「列表」，列表项在下面的缩进行里
  *     - 笔记一
- *   tags: []          ← 空列表，值是列表类型而不是空
- *   tags:             ← 这才是真的没有值（YAML 里是 null）
- *     -             ← 注意：这一行让上面的 tags 变成「只含一个空串的列表」
+ *   tags:             ← 这一行本身是 null（真的没有值）
+ *     -             ← 但这一行让上面的 tags 变成「只含一个空串的列表」
+ *   tags: []          ← 空列表：没有内容，删（类型登记在 types.json，不会丢）
+ *   meta: {}          ← 空对象：同上
+ *   quote: ""         ← 用户显式写出的空字符串，是标量值，保留
  *   note: |           ← 值是空字符串，但它是块标量，删掉等于删掉一个值
  *   memo: null        ← 显式写出的 null，属于用户的选择，保留
  *
- * 因此本模块只删「值节点的源码区间为空」的键：值节点本身必须存在、是标量、
- * 解析结果为 null，且它在原文里不占任何字符。任何一个条件不满足都原样保留。
+ * 所以「空」有两种来源，都要求**源码里除了这个空壳什么都没有**：
+ *
+ * 1. 值节点是标量、解析结果为 null、且区间零宽（`key:`）；
+ * 2. 值节点是**空的流式集合**，且冒号后面紧跟的原文就是这个集合本身
+ *    （`[]` / `[ ]` / `{}`）——带行内注释的不算，删键会把注释一起删掉。
+ *
  * 删完之后还会重新解析一遍，确认 frontmatter 仍然合法，否则整份放弃——
  * 宁可不清理，也不能把用户的 frontmatter 改坏。
  */
@@ -102,6 +109,25 @@ function isEmptyValueNode(node: unknown): boolean {
   return range != null && range[0] === range[1];
 }
 
+/** 冒号后面只有 `[]` / `[ ]` / `{}`，没有别的字符（注释会让它不匹配）。 */
+const emptyFlowCollectionRegex = /^(?:\[[ \t]*\]|\{[ \t]*\})$/;
+
+/**
+ * 这个值节点是不是**空的流式集合**（`key: []` / `key: {}`）。
+ *
+ * 块集合写不出「零项」——`key:` 后面不跟缩进行就是 null，所以这里只需看流式
+ * 写法，并要求它真的一个 item 都没有。至于「源码里是不是正好只有这一对括号」，
+ * 交给调用方用 `emptyFlowCollectionRegex` 比对原文，避免把带注释的行一起删掉。
+ */
+function isEmptyCollectionNode(node: unknown): boolean {
+  if (!isSeq(node) && !isMap(node)) {
+    return false;
+  }
+
+  const items = (node as { items?: unknown[] }).items;
+  return Array.isArray(items) && items.length === 0;
+}
+
 /**
  * 删除 frontmatter 里没有值的属性。
  *
@@ -135,10 +161,6 @@ export function removeEmptyYamlProperties(text: string): EmptyYamlPropertyCleanu
       continue;
     }
 
-    if (!isEmptyValueNode(pair.value)) {
-      continue;
-    }
-
     const keyRange = (pair.key as RangedNode).range;
     if (!keyRange) {
       continue;
@@ -155,9 +177,15 @@ export function removeEmptyYamlProperties(text: string): EmptyYamlPropertyCleanu
       continue;
     }
 
-    // 冒号后面必须只剩空白。`key: # 说明` 这种带行内注释的行因此被保留——
-    // 删掉它等于顺手删掉用户写的注释。
-    if (text.slice(colon + 1, keyLine.end).trim() !== '') {
+    // 冒号之后要么只剩空白（`key:`），要么正好是一个空集合（`key: []`）。
+    // `key: # 说明`、`key: [] # 说明` 都因为「还有别的字符」而落到保留分支——
+    // 删掉它们等于顺手删掉用户写的注释。
+    const afterColon = text.slice(colon + 1, keyLine.end).trim();
+    const isEmpty = isEmptyValueNode(pair.value)
+      ? afterColon === ''
+      : isEmptyCollectionNode(pair.value) && emptyFlowCollectionRegex.test(afterColon);
+
+    if (!isEmpty) {
       continue;
     }
 

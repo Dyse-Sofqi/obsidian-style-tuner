@@ -37,8 +37,34 @@ describe('removeEmptyYamlProperties', () => {
 		expect(removeEmptyYamlProperties(before).text).toBe(before);
 	});
 
-	it('keeps empty lists, empty strings and block scalars', () => {
-		const before = doc('tags: []\nquote: ""\nsingle: \'\'\nnote: |\n  \n');
+	it('removes empty flow collections', () => {
+		// `[]` / `{}` 没有内容，和 `key:` 一样属于空属性；类型记在 types.json，不会丢
+		const before = doc('tags: []\nmeta: {}\nspaced: [ ]\ntitle: 笔记\n');
+		const result = removeEmptyYamlProperties(before);
+
+		expect(result.text).toBe(doc('title: 笔记\n'));
+		expect(result.removedKeys).toEqual(['tags', 'meta', 'spaced']);
+	});
+
+	it('keeps non-empty flow collections', () => {
+		const before = doc('tags: [a, b]\nmeta: {a: 1}\n');
+		expect(removeEmptyYamlProperties(before).text).toBe(before);
+	});
+
+	it('keeps empty strings and block scalars', () => {
+		// 空字符串是用户显式写出的标量值，块标量同理——都不是「没填」
+		const before = doc('quote: ""\nsingle: \'\'\nnote: |\n  \n');
+		expect(removeEmptyYamlProperties(before).text).toBe(before);
+	});
+
+	it('keeps an empty collection that carries an inline comment', () => {
+		const before = doc('tags: [] # 待补\n');
+		expect(removeEmptyYamlProperties(before).text).toBe(before);
+	});
+
+	it('keeps an empty collection written across lines', () => {
+		// 只认冒号后同一行里那对括号，跨行的写法保持原样
+		const before = doc('tags: [\n]\n');
 		expect(removeEmptyYamlProperties(before).text).toBe(before);
 	});
 

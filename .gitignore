@@ -9,6 +9,9 @@ package-lock.json
 main.js
 main.css
 data.json
+# src 下只应有 .ts：`tsc -p ...` 不带 --noEmit 会就地吐出 .js，
+# 而 vitest 解析无扩展名 import 时 .js 优先于 .ts → 测试会悄悄跑旧代码
+src/**/*.js
 # linter 设置（开发库实时数据，随 Obsidian 运行写入）
 data-linter.json
 # 本地工作记录（非插件源码）

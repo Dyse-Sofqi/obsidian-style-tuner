@@ -229,7 +229,7 @@ export default {
 },
       'remove-empty-yaml-properties': {
         'name': '清除空值屬性',
-        'description': '開啟筆記時，自動刪除 frontmatter 中沒有值的屬性（冒號之後什麼都沒有的鍵）。清單、空清單、空字串、明確寫出的 null 都算有值，不會被刪除；關閉時完全不更動文件。',
+        'description': '開啟筆記時，自動刪除 frontmatter 中沒有內容的屬性：冒號之後什麼都沒有的鍵、空清單 `[]`、空物件 `{}`。有清單項的清單、空字串 `""`、明確寫出的 null 都保留；關閉時完全不更動文件。',
       },
           'enable-diff-preview-view': {            'name': '啟用工作區差異預覽',
   'description': '在可停駐的工作區檢視中顯示 lint 預覽命令。關閉後將關閉預覽檢視並隱藏預覽命令。',

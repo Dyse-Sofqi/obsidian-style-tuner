@@ -243,7 +243,7 @@ export default {
 },
       'remove-empty-yaml-properties': {
         'name': '清除空值属性',
-        'description': '打开笔记时，自动删除 frontmatter 里没有值的属性（冒号之后什么都没有的键）。列表、空列表、空字符串、显式写出的 null 都算有值，不会被删除；关闭时完全不改动文档。',
+        'description': '打开笔记时，自动删除 frontmatter 里没有内容的属性：冒号之后什么都没有的键、空列表 `[]`、空对象 `{}`。有列表项的列表、空字符串 `""`、显式写出的 null 都保留；关闭时完全不改动文档。',
       },
           'enable-diff-preview-view': {            'name': '启用工作区差异预览',
   'description': '在可停靠的工作区视图中显示 lint 预览命令。关闭后将关闭预览视图并隐藏预览命令。',
