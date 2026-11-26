@@ -31,6 +31,11 @@ export interface LinterSettings {
   lintOnSave: boolean;
   displayChanged: boolean;
   enableDiffPreviewView: boolean;
+  /**
+   * 「清除空值属性」：打开笔记时删掉 frontmatter 里没有值的属性。
+   * 默认关闭——它会改动文件内容，不适合默认替用户做主。
+   */
+  removeEmptyYamlProperties: boolean;
   suppressLintAllFilesConfirmationModal?: boolean;
   suppressLintAllFilesInFolderConfirmationModal?: boolean;
   settingsConvertedToConfigKeyValues: boolean;
@@ -55,6 +60,7 @@ export const DEFAULT_SETTINGS: Partial<LinterSettings> = {
   recordLintOnSaveLogs: false,
   displayChanged: true,
   enableDiffPreviewView: true,
+  removeEmptyYamlProperties: false,
   suppressLintAllFilesConfirmationModal: false,
   suppressLintAllFilesInFolderConfirmationModal: false,
   lintOnFileChange: false,

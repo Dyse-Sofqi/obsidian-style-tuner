@@ -78,7 +78,69 @@ export async function assignPropertyType(
 
 interface MetadataTypeManagerLike {
 	setType?: (key: string, type: string) => unknown;
+	/** 返回 Obsidian 内部的控件名（`multitext` / `number` / …） */
+	getAssignedType?: (key: string) => unknown;
+	getTypeInfo?: (key: string) => {expected?: {type?: unknown}; widget?: unknown} | null;
+	getAllPropertyInfos?: () => Map<string, {widget?: unknown}> | Record<string, {widget?: unknown}>;
 }
+
+/** 反查表：Obsidian 控件名 → 本插件的属性类型（`multitext` 就是「列表」）。 */
+const WIDGET_TO_PROPERTY_TYPE: Record<string, YamlPropertyType> = Object.fromEntries(
+	Object.entries(YAML_PROPERTY_WIDGET).map(([type, widget]) => [widget, type as YamlPropertyType])
+);
+
+function firstWidgetName(manager: MetadataTypeManagerLike, key: string): string | null {
+	// 三个入口都是内部 API，不同版本留的不一样，按可用性依次试。
+	// 每一步单独 try：某一版把返回值改成对象也不至于让整条读取链断掉。
+	try {
+		const assigned = manager.getAssignedType?.(key);
+		if (typeof assigned === 'string' && assigned) return assigned;
+	} catch {
+		// 忽略，继续试下一个入口
+	}
+
+	try {
+		const info = manager.getTypeInfo?.(key);
+		const type = info?.expected?.type ?? info?.widget;
+		if (typeof type === 'string' && type) return type;
+	} catch {
+		// 同上
+	}
+
+	try {
+		const infos = manager.getAllPropertyInfos?.();
+		const lower = key.toLowerCase();
+		const info = infos instanceof Map ? infos.get(lower) : infos?.[lower];
+		const widget = info?.widget;
+		if (typeof widget === 'string' && widget) return widget;
+	} catch {
+		// 同上
+	}
+
+	return null;
+}
+
+/**
+ * 读取某个键在 `types.json` 里登记过的属性类型。
+ *
+ * 侧边栏属性视图用它来决定控件：登记过的键按登记的类型渲染，没登记的才回落到
+ * 「按值推断」。读不到（版本差异、键从没登记过）时返回 `null`，调用方继续用
+ * 下一级推断，不会因此报错。
+ */
+export function readPropertyType(app: App, key: string): YamlPropertyType | null {
+	const trimmedKey = key.trim();
+	if (!trimmedKey) return null;
+
+	const manager = (app as unknown as {metadataTypeManager?: MetadataTypeManagerLike})
+		.metadataTypeManager;
+	if (!manager) return null;
+
+	const widget = firstWidgetName(manager, trimmedKey);
+	if (!widget) return null;
+
+	return WIDGET_TO_PROPERTY_TYPE[widget] ?? null;
+}
+
 
 interface ConfigJsonVaultLike {
 	readConfigJson?: (name: string) => Promise<unknown>;

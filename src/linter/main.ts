@@ -1,10 +1,11 @@
 import { App, Editor, EventRef, MarkdownView, Menu, Notice, Plugin, TAbstractFile, TFile, TFolder, WorkspaceLeaf, addIcon, htmlToMarkdown, EditorSelection, EditorChange, normalizePath, MarkdownFileInfo, debounce, Debouncer, getLanguage } from 'obsidian';
 import type { Command, PluginManifest } from 'obsidian';
-import { Options, RuleType, ruleTypeToRules, rules, sortRules } from './rules';
+import { Options, RuleType, getDisabledRules, ruleTypeToRules, rules, sortRules } from './rules';
 import DiffMatchPatch from 'diff-match-patch';
 import dedent from 'ts-dedent';
 import { stripCr } from './utils/strings';
 import { normalizeYamlAttributeEntries } from './utils/yaml-attributes';
+import { removeEmptyYamlProperties } from './utils/empty-yaml-properties';
 import { diffToEditorChanges } from './utils/editor-changes';
 import { logInfo, logError, logDebug, setLogLevel, logWarn, setCollectLogs, clearLogs, convertNumberToLogLevel } from './utils/logger';
 import { moment } from 'obsidian';
@@ -19,6 +20,7 @@ import { getTextInLanguage, LanguageStringKey, setLanguage } from './lang/helper
 import { RuleAliasSuggest } from './cm6/rule-alias-suggester';
 import { AfterFileChangeLintTimes, DEFAULT_SETTINGS, LinterSettings, moveDefaultArrayStyleToCommonStyles } from './settings-data';
 import { DiffPreviewView, diffPreviewViewType } from './ui/views/diff-preview-view';
+import { PropertiesView, propertiesViewType } from './ui/views/properties-view';
 
 // https://github.com/liamcain/obsidian-calendar-ui/blob/03ceecbf6d88ef260dadf223ee5e483d98d24ffc/src/localization.ts#L20-L43
 const langToMomentLocale = {
@@ -168,6 +170,7 @@ export default class LinterPlugin {
 
     this.addCommands();
     this.registerView(diffPreviewViewType, (leaf) => new DiffPreviewView(leaf));
+    this.registerView(propertiesViewType, (leaf) => new PropertiesView(leaf, this));
     this.updateDiffPreviewViewStatus();
 
     this.registerEventsAndSaveCallback();
@@ -252,6 +255,8 @@ export default class LinterPlugin {
 
     this.updatePasteOverrideStatus();
     this.updateDiffPreviewViewStatus();
+    // 「要插入的键」改过之后，已打开的属性视图要重读这份标准属性清单
+    this.refreshPropertiesViews();
   }
 
   addCommands() {
@@ -365,6 +370,42 @@ export default class LinterPlugin {
     });
 
     this.registerDiffPreviewCommands();
+
+    this.addCommand({
+      id: 'open-properties-view',
+      name: getTextInLanguage('commands.open-properties-view.name'),
+      callback: () => {
+        void this.activatePropertiesView();
+      },
+      icon: 'tags',
+    });
+  }
+
+  /**
+   * 打开（或聚焦）侧边栏「属性」视图。
+   *
+   * 与差异预览一样复用右侧栏的空叶：没有可用的空叶时退回新建分屏，保证命令
+   * 在任何布局下都能真的把视图显示出来。
+   */
+  async activatePropertiesView(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(propertiesViewType)[0];
+    if (existing) {
+      await this.app.workspace.revealLeaf(existing);
+      return;
+    }
+
+    const leaf =
+      this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf('split');
+    await leaf.setViewState({ type: propertiesViewType, active: true });
+    await this.app.workspace.revealLeaf(leaf);
+  }
+
+  /** 设置变化后让已打开的属性视图重读「要插入的键」。 */
+  private refreshPropertiesViews(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType(propertiesViewType)) {
+      const view = leaf.view;
+      if (view instanceof PropertiesView) view.refreshConfig();
+    }
   }
 
   registerDiffPreviewCommands() {
@@ -420,6 +461,14 @@ export default class LinterPlugin {
     this.registerEvent(eventRef);
     this.eventRefs.push(eventRef);
 
+    // 「清除空值属性」按「打开」而不是「保存 / 切换」触发：它处理的是刚拿到的
+    // 一份文档，越早删掉，用户看到的属性面板越干净。
+    eventRef = this.app.workspace.on('file-open', (file) => {
+      void this.removeEmptyYamlPropertiesOnOpen(file);
+    });
+    this.registerEvent(eventRef);
+    this.eventRefs.push(eventRef);
+
     eventRef = this.app.workspace.on('editor-change', async (editor: Editor, info: MarkdownView | MarkdownFileInfo) => {
       if (this.getYamlTimestampUpdateTiming() == AfterFileChangeLintTimes.Never) {
         return;
@@ -457,6 +506,8 @@ export default class LinterPlugin {
 
     this.app.workspace.onLayoutReady(async () => {
       await this.makeSureSettingsFilledInAndCleanupSettings();
+      // 启动时恢复的那篇笔记不会走 `file-open`，这里补一次
+      void this.removeEmptyYamlPropertiesOnOpen(this.app.workspace.getActiveFile());
     });
 
     // Source for save setting
@@ -556,6 +607,61 @@ export default class LinterPlugin {
       this.handleLintError(this.lastActiveFile, error instanceof Error ? error : new Error(String(error)), getTextInLanguage('commands.lint-file.error-message') + ' \'{FILE_PATH}\'', false);
     } finally {
       this.lastActiveFile = currentActiveFile;
+    }
+  }
+
+  /**
+   * 「清除空值属性」：打开笔记时删掉 frontmatter 里没有值的属性。
+   *
+   * 走 `vault.process` 做原子读改写，而不是自己 read → 比较 → modify：
+   * 它自带「内容没变就不写盘」的判断（只是打开看一眼的笔记不会因此被写一次），
+   * 写入时还会把这次改动标记成本应用自己的写入，正在显示这篇笔记的编辑器
+   * 不会弹出「文件已在别处被修改」。
+   *
+   * 真的删掉了键时按「格式化后显示消息」（`displayChanged`）弹一条 Notice：
+   * 它和手动格式化一样会改文件，用户有权当场知道，而不是事后发现属性少了。
+   * @param {TFile | null} file 刚打开的文档
+   */
+  async removeEmptyYamlPropertiesOnOpen(file: TFile | null) {
+    if (!this.isEnabled || !this.settings.removeEmptyYamlProperties) {
+      return;
+    }
+
+    if (!file || !this.isMarkdownFile(file) || this.shouldIgnoreFile(file)) {
+      return;
+    }
+
+    let removedKeys: string[] = [];
+
+    try {
+      await this.app.vault.process(file, (text) => {
+        const result = removeEmptyYamlProperties(text);
+        if (result.removedKeys.length === 0) {
+          return text;
+        }
+
+        // `disabled rules: all` 表示这篇笔记不想被自动改动，这个功能同样遵守。
+        // 放在「确实有东西要删」之后判断：没有可删的键时压根不必去解析它。
+        if (getDisabledRules(text)[1]) {
+          return text;
+        }
+
+        removedKeys = result.removedKeys;
+        return result.text;
+      });
+    } catch (error) {
+      // 自动发生的行为不该弹 Notice 打断用户，留一条错误日志即可
+      logError(`clear empty yaml properties failed for '${file.path}'`, error instanceof Error ? error : new Error(String(error)));
+    }
+
+    if (removedKeys.length > 0) {
+      const message = getTextInLanguage('notice-text.empty-yaml-properties-cleared').replace('{KEYS}', removedKeys.join(', '));
+      logDebug(message);
+
+      // 与「格式化后显示消息」同一个开关：文档真的被改了，就该让用户知道
+      if (this.settings.displayChanged) {
+        new Notice(message);
+      }
     }
   }
 

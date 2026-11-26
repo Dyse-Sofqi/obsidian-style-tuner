@@ -117,6 +117,7 @@ export default {
   'diff-large-file-warning': '檔案較大，已跳過差異渲染，需要時點擊下方按鈕查看。',
   'diff-skipped-lines': '已摺疊 {COUNT} 行未變更內容',
   'diff-summary': '+{LINES_ADDED} 行 / -{LINES_REMOVED} 行，+{CHARS_ADDED} 字元 / -{CHARS_REMOVED} 字元',
+  'empty-yaml-properties-cleared': '已清除空值屬性：{KEYS}',
 },
 
   // rule-alias-suggester.ts
@@ -226,6 +227,10 @@ export default {
         'description': '將數學內容視為數學區塊而非行內數學的錢字號數量',
               'invalid': '請輸入不小於 1 的整數。',
 },
+      'remove-empty-yaml-properties': {
+        'name': '清除空值屬性',
+        'description': '開啟筆記時，自動刪除 frontmatter 中沒有值的屬性（冒號之後什麼都沒有的鍵）。清單、空清單、空字串、明確寫出的 null 都算有值，不會被刪除；關閉時完全不更動文件。',
+      },
           'enable-diff-preview-view': {            'name': '啟用工作區差異預覽',
   'description': '在可停駐的工作區檢視中顯示 lint 預覽命令。關閉後將關閉預覽檢視並隱藏預覽命令。',
 },

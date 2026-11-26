@@ -2,6 +2,9 @@
 
 export default {
   'commands': {
+    'open-properties-view': {
+      'name': '打开属性视图',
+    },
     'lint-file': {
       'name': '格式化当前文件',
       'error-message': '格式化当前文件时出错',
@@ -102,6 +105,21 @@ export default {
   'unexpected-pre-table-content': '修剪表格行开头时出现意外结果：在表格行“{TABLE_ROW}”之前的引用块中发现了非空白内容，行首为“{START_OF_LINE}”。',
 },
 
+  // ui/views/properties-view.ts
+  'properties-view': {
+    'title': '属性',
+    'empty': '没有打开的 Markdown 笔记。',
+    'no-properties': '这篇笔记还没有属性，可在下方输入框添加。',
+    'add-placeholder': '添加属性…',
+    'pending': '未登记',
+    'remove': '删除属性',
+    'change-type': '更改属性类型',
+    'list-add': '添加',
+    'pill-remove': '移除',
+    'type-aliases': '别名',
+    'type-tags': '标签',
+  },
+
   'notice-text': {
     'empty-clipboard': '剪贴板为空',
     'characters-added': '个字符被添加',
@@ -110,6 +128,7 @@ export default {
   'apply-lint-preview': '应用',
   'no-preview-changes': '无更改。',
   'show-diff': '显示差异',
+  'empty-yaml-properties-cleared': '已清除空值属性：{KEYS}',
   'diff-large-file-warning': '文件较大，已跳过差异渲染，需要时点击下方按钮查看。',
   'diff-skipped-lines': '已折叠 {COUNT} 行未更改内容',
   'diff-summary': '+{LINES_ADDED} 行 / -{LINES_REMOVED} 行，+{CHARS_ADDED} 字符 / -{CHARS_REMOVED} 字符',
@@ -222,6 +241,10 @@ export default {
         'description': '将 Latex 内容视为 Latex 块而不是行内 Latex 的 $ 符号的数量',
               'invalid': '请输入不小于 1 的整数。',
 },
+      'remove-empty-yaml-properties': {
+        'name': '清除空值属性',
+        'description': '打开笔记时，自动删除 frontmatter 里没有值的属性（冒号之后什么都没有的键）。列表、空列表、空字符串、显式写出的 null 都算有值，不会被删除；关闭时完全不改动文档。',
+      },
           'enable-diff-preview-view': {            'name': '启用工作区差异预览',
   'description': '在可停靠的工作区视图中显示 lint 预览命令。关闭后将关闭预览视图并隐藏预览命令。',
 },

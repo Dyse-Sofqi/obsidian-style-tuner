@@ -2,6 +2,9 @@
 
 export default {
   'commands': {
+    'open-properties-view': {
+      'name': 'Open properties view',
+    },
     'lint-file': {
       'name': 'Lint the current file',
       'error-message': 'Lint File Error in File',
@@ -127,6 +130,21 @@ export default {
     'invalid-datetime': '"{VALUE}" is not a date and time in YYYY-MM-DDTHH:mm form',
   },
 
+  // ui/views/properties-view.ts
+  'properties-view': {
+    'title': 'Properties',
+    'empty': 'No Markdown note is open.',
+    'no-properties': 'This note has no properties yet. Add one below.',
+    'add-placeholder': 'Add property…',
+    'pending': 'Not set',
+    'remove': 'Remove property',
+    'change-type': 'Change property type',
+    'list-add': 'Add',
+    'pill-remove': 'Remove',
+    'type-aliases': 'Aliases',
+    'type-tags': 'Tags',
+  },
+
   'notice-text': {
     'empty-clipboard': 'There is no clipboard content.',
     'characters-added': 'characters added',
@@ -138,6 +156,7 @@ export default {
     'lint-preview-title': 'Lint preview',
     'no-preview-changes': 'No changes.',
     'show-diff': 'Show diff',
+    'empty-yaml-properties-cleared': 'Removed properties with no value: {KEYS}',
   },
 
   // rule-alias-suggester.ts
@@ -260,6 +279,10 @@ export default {
         'name': 'Number of dollar signs to indicate math block',
         'description': 'The amount of dollar signs to consider the math content to be a math block instead of inline math',
         'invalid': 'Enter a whole number of 1 or greater.',
+      },
+      'remove-empty-yaml-properties': {
+        'name': 'Remove properties with no value',
+        'description': 'When a note is opened, delete frontmatter properties that have no value (a key with nothing after the colon). Lists, empty lists, empty strings and an explicit null all count as values and are left alone.',
       },
     },
     'debug': {

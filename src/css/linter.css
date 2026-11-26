@@ -256,3 +256,408 @@
 .style-tuner-linter-list-add-row .setting-item-control button:hover {
   color: var(--text-accent);
 }
+
+/**
+* 侧边栏「属性」视图
+*
+* 目标是原生属性面板那种「扁平」观感：行本身没有边框和底色，输入框平时也是
+* 透明的一行文字，只在悬停 / 聚焦时浮出一层浅底。
+*
+* 所有选择器都挂在 `.style-tuner-properties-view` 下，且输入框写成
+* `.style-tuner-properties-view input.xxx`：Obsidian 自带的是 `input[type="text"]`
+* 这类「元素 + 属性」选择器，单类选择器压不住，样式就会漏成带边框的表单框
+* ——那正是上一版看起来「一块一块」的原因。
+*/
+
+.style-tuner-properties-view {
+  padding: var(--size-4-3, 12px) var(--size-4-2, 8px) 0;
+}
+
+/* 标题区：小标题 + 文件路径，下面一条很淡的分隔线 */
+.style-tuner-properties-view .style-tuner-properties-header {
+  padding: 0 var(--size-4-1, 4px) var(--size-4-2, 8px);
+  margin-bottom: var(--size-2-3, 6px);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.style-tuner-properties-view .style-tuner-properties-title {
+  color: var(--text-normal);
+  font-size: var(--font-ui-small, 13px);
+  font-weight: var(--font-semibold, 600);
+  line-height: 1.5;
+}
+
+.style-tuner-properties-view .style-tuner-properties-file {
+  overflow: hidden;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller, 12px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.style-tuner-properties-view .style-tuner-properties-empty {
+  padding: var(--size-4-2, 8px) var(--size-4-1, 4px);
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller, 12px);
+  line-height: 1.6;
+}
+
+.style-tuner-properties-view .style-tuner-properties-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 一行属性：扁平、无边框，悬停才浮出浅底 */
+.style-tuner-properties-view .style-tuner-property {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-1, 2px);
+  min-height: 30px;
+  padding: 0 2px;
+  border-radius: var(--radius-s, 4px);
+}
+
+.style-tuner-properties-view .style-tuner-property:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* 键列：定宽，行与行之间对齐成一列 */
+.style-tuner-properties-view .style-tuner-property-key {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--size-2-1, 2px);
+  width: var(--metadata-label-width, 9em);
+  max-width: 46%;
+  padding: 0 2px 0 var(--size-2-1, 2px);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small, 13px);
+}
+
+.style-tuner-properties-view .style-tuner-property-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 已经登记了值的行：键名用正文色，和「空值 / 未登记」的行一眼能分开 */
+.style-tuner-properties-view .style-tuner-property.is-filled .style-tuner-property-name {
+  color: var(--text-normal);
+}
+
+/* 类型图标：沿用 Obsidian 的属性图标配色（--icon-color / --icon-color-focused），
+   悬停只提亮图标本身，不加底色——原生属性面板就是这么做的 */
+.style-tuner-properties-view button.style-tuner-property-icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-s, 4px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--icon-color, var(--text-muted));
+  /* 默认光标：这类图标是「类型标记 / 选择器」，不是链接，不用手型 */
+  cursor: default;
+}
+
+.style-tuner-properties-view button.style-tuner-property-icon:hover {
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--icon-color-focused, var(--text-normal));
+}
+
+.style-tuner-properties-view button.style-tuner-property-icon:hover .svg-icon {
+  opacity: 1;
+}
+
+.style-tuner-properties-view .style-tuner-property-icon .svg-icon {
+  width: var(--icon-xs, 14px);
+  height: var(--icon-xs, 14px);
+  opacity: 0.7;
+}
+
+/* 标准属性里文档还没有的那些：键名更淡，提示「未登记」 */
+.style-tuner-properties-view .style-tuner-property.is-pending .style-tuner-property-name {
+  color: var(--text-faint);
+}
+
+.style-tuner-properties-view .style-tuner-property-value {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--size-2-1, 2px);
+  min-width: 0;
+}
+
+/* 值输入框：平时就是一行透明文字 */
+.style-tuner-properties-view input.style-tuner-property-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  padding: 2px 6px;
+  border: none;
+  border-radius: var(--radius-s, 4px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: var(--font-ui-small, 13px);
+  line-height: 1.5;
+  /* 有些主题会把输入框文字居中，属性值一律左对齐 */
+  text-align: start;
+}
+
+.style-tuner-properties-view input.style-tuner-property-input:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.style-tuner-properties-view input.style-tuner-property-input:focus {
+  background-color: var(--background-modifier-form-field);
+  box-shadow: 0 0 0 1px var(--background-modifier-border-focus, var(--background-modifier-border));
+}
+
+.style-tuner-properties-view input.style-tuner-property-input::placeholder {
+  color: var(--text-faint);
+}
+
+/* 日期 / 日期时间：就是原生控件本身，不再做任何「显示态」改造。
+   和其它值输入框一样铺满值列，控件自带的日历指示器留在原位。 */
+.style-tuner-properties-view input.style-tuner-property-input-date {
+  color: var(--text-normal);
+  font-variant-numeric: tabular-nums;
+}
+
+.style-tuner-properties-view input.style-tuner-property-input-date::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.style-tuner-properties-view input.style-tuner-property-input-date:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+.style-tuner-properties-view .style-tuner-property-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+}
+
+.style-tuner-properties-view .style-tuner-property-checkbox input[type='checkbox'] {
+  margin: 0;
+}
+
+/* 列表型属性：pill + 行内追加输入框 */
+.style-tuner-properties-view .style-tuner-property-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-2-1, 2px);
+  min-width: 0;
+  padding: 3px 0;
+}
+
+.style-tuner-properties-view .style-tuner-property-pills {
+  display: contents;
+}
+
+/* 胶囊本身复刻核心属性面板里 tags 的样式：圆角、内边距、底色都取主题变量，
+   悬停时底色加深一档；光标的默认箭头（它不是链接，用手型反而误导） */
+.style-tuner-properties-view .style-tuner-property-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-2-1, 2px);
+  max-width: 100%;
+  /* 几何尺寸不取主题变量：
+     - 竖向留白固定 1px、min-height 20px：胶囊高度随字号微调，但不会被
+       `--tag-padding-y` 这类主题变量撑开、也不会顶高行；
+     - 圆角固定 999px：浏览器按短边取一半做半径，永远是胶囊；用
+       `--tag-radius`（可能是 50%）在宽扁盒子会直接算成椭圆。 */
+  box-sizing: border-box;
+  min-height: 20px;
+  padding: 1px 0;
+  border-radius: 999px;
+  background-color: var(--tag-background, var(--background-modifier-hover));
+  /* 文字用 tag 的强调色，和核心属性面板里的标签一致 */
+  color: var(--tag-color, var(--text-accent));
+  font-size: var(--font-ui-small, 13px);
+  line-height: 1.3;
+  cursor: default;
+}
+
+.style-tuner-properties-view .style-tuner-property-pill:hover {
+  background-color: var(--tag-background-hover, var(--background-modifier-active-hover, var(--background-modifier-hover)));
+  color: var(--tag-color-hover, var(--tag-color, var(--text-accent)));
+}
+
+.style-tuner-properties-view .style-tuner-property-pill-label {
+  margin-inline-start: var(--tag-padding-x, 0.6em);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 删除按钮：颜色与文字同为 tag 强调色（与原生一致）。
+   注意必须显式给宽高：Obsidian 的全局 `button` 规则带 `height: var(--input-height)`
+   （30px），不覆盖的话这个按钮会把胶囊顶到 32px、看起来像个椭圆。 */
+.style-tuner-properties-view button.style-tuner-property-pill-remove {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-s, 4px);
+  background: transparent;
+  box-shadow: none;
+  margin-inline-end: min(var(--size-2-3, 6px), var(--tag-padding-x, 0.65em));
+  color: var(--tag-color, var(--text-accent));
+  line-height: 1;
+  cursor: default;
+}
+
+.style-tuner-properties-view .style-tuner-property-pill-remove .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.style-tuner-properties-view button.style-tuner-property-pill-remove:hover {
+  background: transparent;
+  box-shadow: none;
+  color: var(--tag-color-hover, var(--tag-color, var(--text-accent)));
+}
+
+.style-tuner-properties-view input.style-tuner-property-pill-input {
+  flex: 1 1 3em;
+  min-width: 3em;
+  height: 24px;
+  padding: 0 4px;
+  border: none;
+  border-radius: var(--radius-s, 4px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: var(--font-ui-smaller, 12px);
+}
+
+.style-tuner-properties-view input.style-tuner-property-pill-input::placeholder {
+  color: var(--text-faint);
+}
+
+.style-tuner-properties-view .style-tuner-property-value-readonly {
+  flex: 1 1 auto;
+  overflow: hidden;
+  padding: 2px 6px;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller, 12px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 删除按钮：平时藏起来，行悬停 / 聚焦时才出现，避免右侧一路 × 干扰阅读 */
+.style-tuner-properties-view button.style-tuner-property-remove {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-s, 4px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-faint);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 100ms ease;
+}
+
+.style-tuner-properties-view .style-tuner-property:hover button.style-tuner-property-remove,
+.style-tuner-properties-view .style-tuner-property:focus-within button.style-tuner-property-remove {
+  opacity: 1;
+}
+
+.style-tuner-properties-view button.style-tuner-property-remove:hover {
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-error);
+}
+
+.style-tuner-properties-view .style-tuner-property-remove .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* 底部「添加属性」：与属性行同款的一行，加号 + 输入框 */
+.style-tuner-properties-view .style-tuner-property-add {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-1, 2px);
+  margin-top: var(--size-2-1, 2px);
+  padding: 0 2px;
+  border-radius: var(--radius-s, 4px);
+  color: var(--text-faint);
+}
+
+.style-tuner-properties-view .style-tuner-property-add:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.style-tuner-properties-view .style-tuner-property-add-icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.style-tuner-properties-view .style-tuner-property-add-icon .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.style-tuner-properties-view input.style-tuner-property-add-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 26px;
+  padding: 2px 4px;
+  border: none;
+  border-radius: var(--radius-s, 4px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: var(--font-ui-smaller, 12px);
+}
+
+.style-tuner-properties-view input.style-tuner-property-add-input::placeholder {
+  color: var(--text-faint);
+}
+
+/* 退格选中的那一枚（复刻原生多值属性：先选中，再按一次才删除） */
+.style-tuner-properties-view .style-tuner-property-pill.is-selected {
+  background-color: var(--text-selection);
+  box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+/* Obsidian 全局的 `.svg-icon` 带 `margin-right`，图标放在自己的按钮里会偏一边；
+   这里统一清零，让 width/height 之外没有额外偏移 */
+.style-tuner-properties-view .style-tuner-property-icon .svg-icon,
+.style-tuner-properties-view .style-tuner-property-pill-remove .svg-icon,
+.style-tuner-properties-view .style-tuner-property-remove .svg-icon,
+.style-tuner-properties-view .style-tuner-property-add-icon .svg-icon {
+  margin: 0;
+}

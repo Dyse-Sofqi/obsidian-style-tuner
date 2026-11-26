@@ -364,6 +364,14 @@ export class SettingTab extends PluginSettingTab {
             validate: (value) => Number.isInteger(value) && value >= 1 ? undefined : getTextInLanguage('tabs.general.number-of-dollar-signs-to-indicate-math-block.invalid'),
           },
         },
+        {
+          // 这一项紧跟的是「每次打开文档时」的行为，而不是某个格式参数的取值，
+          // 所以放在分组末尾：前面几项都是「写出来的 YAML 长什么样」，
+          // 这一项说的是「要不要顺手清理」。
+          name: getTextInLanguage('tabs.general.remove-empty-yaml-properties.name'),
+          desc: richDescription(getTextInLanguage('tabs.general.remove-empty-yaml-properties.description')),
+          control: {type: 'toggle', key: 'removeEmptyYamlProperties'},
+        },
       ],
     };
   }
