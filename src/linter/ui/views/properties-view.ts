@@ -4,6 +4,7 @@ import { getTextInLanguage } from '../../lang/helpers';
 import { logWarn } from '../../utils/logger';
 import { assignPropertyType, readPropertyType } from '../../utils/property-types';
 import {
+  applyPendingValues,
   buildPropertyRows,
   isBlankValue,
   type PropertyRow,
@@ -14,7 +15,8 @@ import {
 } from '../../utils/timestamp-format';
 import { normalizeYamlAttributeEntries, type YamlAttributeEntry } from '../../utils/yaml-attributes';
 import { createPropertyRow, type PropertyRowHandlers } from '../components/property-row';
-import { TagInputSuggest } from '../components/tag-suggest';
+import { ListValueSuggest } from '../components/list-value-suggest';
+import { ListValueIndex } from '../../utils/list-values';
 
 /**
  * 侧边栏「属性」视图。
@@ -71,6 +73,26 @@ export class PropertiesView extends ItemView {
   private renderTimer: number | null = null;
   private suppressUntil = 0;
   private needsRefresh = false;
+
+  /**
+   * 列表属性的全库候选值索引（按最近添加排序），元数据一变就失效。
+   *
+   * 延迟创建：`this.app` 要等 `View` 挂载完成才可靠，构造期取值有风险。
+   */
+  private listValues: ListValueIndex | null = null;
+
+  private get listValueIndex(): ListValueIndex {
+    this.listValues ??= new ListValueIndex(this.app);
+    return this.listValues;
+  }
+
+  /**
+   * 自己刚写下去、缓存可能还没跟上的值：键 → 值（空值表示该键已删）。
+   *
+   * 重画时叠在缓存之上，避免「删掉的列表项先复活再消失」的闪烁。
+   */
+  private pendingValues = new Map<string, unknown>();
+  private pendingTimers = new Map<string, number>();
 
   constructor(leaf: WorkspaceLeaf, plugin: LinterPlugin) {
     super(leaf);
@@ -150,7 +172,13 @@ export class PropertiesView extends ItemView {
     this.registerEvent(this.app.workspace.on('file-open', () => this.syncFile()));
     this.registerEvent(
       this.app.metadataCache.on('changed', (file) => {
+        // 任何一篇笔记变了都可能带来新的列表值 → 候选索引整体作废（下次取时重建）
+        this.listValueIndex.invalidate();
+
         if (file !== this.currentFile) return;
+        // 缓存跟上自己写下去的值后就撤掉那份乐观值；即使这次 changed 落在抑制
+        // 窗口里也要先对账，否则乐观值会一直盖住缓存、拖到超时才失效。
+        this.settlePendingValues(file);
         if (Date.now() < this.suppressUntil) return;
         // 正在这个视图里打字时不要整体重画，否则光标会被抽走
         if (this.hasFocus()) {
@@ -160,6 +188,11 @@ export class PropertiesView extends ItemView {
         this.scheduleRender(RENDER_DELAY);
       })
     );
+
+    // 删文件 / 改名会让候选里的值消失或出现，同样作废。
+    // 这两类事件在 `vault` 上（`metadataCache` 的类型定义里没有 rename）。
+    this.registerEvent(this.app.vault.on('delete', () => this.listValueIndex.invalidate()));
+    this.registerEvent(this.app.vault.on('rename', () => this.listValueIndex.invalidate()));
   }
 
   /**
@@ -175,7 +208,73 @@ export class PropertiesView extends ItemView {
 
     this.currentFile = active;
     this.extraKeys = [];
+    // 乐观值是「这一篇」的，换文档就作废
+    this.clearPendingValues();
     this.render();
+  }
+
+  /**
+   * 记下「我刚写下去、缓存还没跟上」的值。
+   *
+   * 写盘后 `metadataCache` 会滞后几十到几百毫秒，这期间任何重画都会读到旧值，
+   * 把刚删掉的列表项「复活」一下再消失——就是胶囊删除时那一闪。
+   * @param {string} key 属性键名
+   * @param {unknown} value 刚写下去的值；空值表示这个键已经删掉
+   */
+  private rememberPending(key: string, value: unknown): void {
+    this.pendingValues.set(key, value);
+
+    const previous = this.pendingTimers.get(key);
+    if (previous !== undefined) window.clearTimeout(previous);
+
+    // 兜底：缓存一直没更新时，也别让这份乐观值长期盖住磁盘真值
+    this.pendingTimers.set(
+      key,
+      window.setTimeout(() => {
+        this.pendingTimers.delete(key);
+        this.pendingValues.delete(key);
+      }, WRITE_SUPPRESS * 2),
+    );
+  }
+
+  /** 缓存已经跟上自己写入的值 → 撤掉该条乐观值（继续留着会盖住后续的其它修改）。 */
+  private settlePendingValues(file: TFile): void {
+    if (this.pendingValues.size === 0) return;
+
+    const cached = this.app.metadataCache.getFileCache(file)?.frontmatter as
+      | Record<string, unknown>
+      | undefined;
+
+    for (const [key, value] of [...this.pendingValues]) {
+      const matches = isBlankValue(value)
+        ? !cached || !Object.prototype.hasOwnProperty.call(cached, key)
+        : !!cached && JSON.stringify(cached[key]) === JSON.stringify(value);
+
+      if (!matches) continue;
+
+      this.pendingValues.delete(key);
+      const timer = this.pendingTimers.get(key);
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        this.pendingTimers.delete(key);
+      }
+    }
+  }
+
+  /** 撤掉单个键的乐观值（写盘失败时用）。 */
+  private forgetPending(key: string): void {
+    this.pendingValues.delete(key);
+    const timer = this.pendingTimers.get(key);
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+      this.pendingTimers.delete(key);
+    }
+  }
+
+  private clearPendingValues(): void {
+    for (const timer of this.pendingTimers.values()) window.clearTimeout(timer);
+    this.pendingTimers.clear();
+    this.pendingValues.clear();
   }
 
   private hasFocus(): boolean {
@@ -201,12 +300,17 @@ export class PropertiesView extends ItemView {
 
   private readFrontmatter(file: TFile): Record<string, unknown> | null {
     const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-    if (!frontmatter) return null;
+    if (!frontmatter && this.pendingValues.size === 0) return null;
 
     // `position` 是元数据缓存塞进去的定位信息，不是用户的属性
-    const { position, ...rest } = frontmatter as Record<string, unknown> & { position?: unknown };
+    const { position, ...rest } = (frontmatter ?? {}) as Record<string, unknown> & {
+      position?: unknown;
+    };
     void position;
-    return rest;
+
+    // 叠加「自己刚写下去」的值：缓存滞后时重画会看到旧值，删掉的列表项会先复活
+    // 再消失（胶囊删除的那一闪就是它）
+    return applyPendingValues(rest, this.pendingValues);
   }
 
   private render(): void {
@@ -265,18 +369,21 @@ export class PropertiesView extends ItemView {
       onDelete: (key) => void this.deleteProperty(key),
       onTypeChange: (key, type) => void this.changeType(key, type),
       onTagClick: (tag) => this.openTagSearch(tag),
-      attachTagSuggest: (input, getExisting, onPick) => {
-        const suggest = new TagInputSuggest(this.app, input, getExisting, onPick);
-        // 点进输入框就列出已有标签；键入时 AbstractInputSuggest 会按输入重新过滤
-        input.addEventListener('focus', () => suggest.open());
-        input.addEventListener('click', () => suggest.open());
-        input.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape') suggest.close();
-        });
-        // 失焦后稍等一下再关：点击候选项时先触发 mousedown/click，晚一点关才不会吃掉选择
-        input.addEventListener('blur', () => {
-          window.setTimeout(() => suggest.close(), 200);
-        });
+      attachValueSuggest: (key, input, getExisting, onPick) => {
+        // `tags` 的候选显示带 `#`（和 Obsidian 的标签观感一致），其它属性原样显示
+        const isTagKey = key.trim().toLowerCase() === 'tags';
+        // 实例由 `AbstractInputSuggest` 内部的事件监听持有，无需自己留引用。
+        // 弹层的打开/关闭交给它自己：聚焦、输入、点击内部都已绑定；`ListValueSuggest`
+        // 覆盖了 `open()`，候选为空时一律不挂容器（也收起已弹的），所以这里不必
+        // 再补 click 事件——补了反而会重复触发候选计算。
+        new ListValueSuggest(
+          this.app,
+          input,
+          () => this.listValueIndex.get(key),
+          getExisting,
+          onPick,
+          isTagKey ? (value) => `#${value}` : undefined
+        );
       },
     };
   }
@@ -353,6 +460,9 @@ export class PropertiesView extends ItemView {
     if (!file) return;
 
     this.suppressUntil = Date.now() + WRITE_SUPPRESS;
+    // 先记下乐观值，再落盘：写盘到缓存更新之间若发生重画，读到的是这份新值，
+    // 删掉的列表项不会先复活再消失。缓存跟上后由 settlePendingValues 撤掉。
+    this.rememberPending(key, value);
 
     try {
       await this.app.fileManager.processFrontMatter(
@@ -367,6 +477,10 @@ export class PropertiesView extends ItemView {
         }
       );
     } catch (error) {
+      // 写盘失败：撤掉乐观值并重画，让行回到磁盘的真实状态（否则 pill 已被
+      // 本地移除，和磁盘不一致）
+      this.forgetPending(key);
+      this.scheduleRender(0);
       logWarn(
         `could not save the property "${key}": ${
           error instanceof Error ? error.message : String(error)

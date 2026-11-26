@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyPendingValues,
   buildPropertyRows,
   formatPropertyValue,
   inferPropertyType,
@@ -223,5 +224,40 @@ describe('display names', () => {
   it('falls back to the key when the entry has no label', () => {
     const rows = buildPropertyRows({ frontmatter: null, entries: [entry('memo')], useLabels: true });
     expect(rows[0].displayName).toBeUndefined();
+  });
+});
+
+describe('applyPendingValues', () => {
+  it('overlays a just-written list value over a stale cache', () => {
+    // 缓存还是旧的（含被删项），乐观值是删后的新数组 → 重画应显示新值，pill 不复活
+    const stale = { tags: ['a', 'b', 'c'], title: 'x' };
+    const merged = applyPendingValues(stale, new Map([['tags', ['a', 'c']]]));
+    expect(merged).toEqual({ tags: ['a', 'c'], title: 'x' });
+    // 不改动入参
+    expect(stale.tags).toEqual(['a', 'b', 'c']);
+  });
+
+  it('deletes a key when the optimistic value is blank', () => {
+    expect(applyPendingValues({ tags: ['a'], title: 'x' }, new Map([['tags', null]]))).toEqual({
+      title: 'x',
+    });
+    expect(applyPendingValues({ tags: ['a'] }, new Map([['tags', []]]))).toEqual({});
+    expect(applyPendingValues({ tags: ['a'] }, new Map([['tags', '']]))).toEqual({});
+  });
+
+  it('adds a key that is not in the cache yet', () => {
+    expect(applyPendingValues({ title: 'x' }, new Map([['status', 'done']]))).toEqual({
+      title: 'x',
+      status: 'done',
+    });
+  });
+
+  it('works when the cache has no frontmatter at all', () => {
+    expect(applyPendingValues(null, new Map([['status', 'done']]))).toEqual({ status: 'done' });
+  });
+
+  it('returns the original object untouched when there is nothing pending', () => {
+    const fm = { tags: ['a'] };
+    expect(applyPendingValues(fm, new Map())).toBe(fm);
   });
 });

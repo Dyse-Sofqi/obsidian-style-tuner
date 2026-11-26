@@ -211,6 +211,38 @@ export function buildPropertyRows({
   return rows;
 }
 
+/**
+ * 把「刚写下去、但元数据缓存还没跟上」的值叠加到 frontmatter 上。
+ *
+ * 场景：在视图里删掉一枚列表项后，`processFrontMatter` 已经落盘，但
+ * `metadataCache.getFileCache()` 要过几十到几百毫秒才更新。这期间任何一次重画
+ * 都会读到旧值，把刚删掉的那一项「复活」——肉眼看到的就是「闪一下、过一会儿才
+ * 消失」。调用方在写盘时记下这份乐观值，重画时叠在缓存之上，缓存跟上后再撤掉。
+ *
+ * 空值（`null` / `''` / `[]`）按「删掉这个键」处理，与写盘时的语义保持一致。
+ *
+ * @param {Record<string, unknown> | null} frontmatter 缓存里的 frontmatter
+ * @param {ReadonlyMap<string, unknown>} pending 键 → 自己刚写下去的值
+ * @return {Record<string, unknown> | null} 叠加后的 frontmatter
+ */
+export function applyPendingValues(
+  frontmatter: Record<string, unknown> | null,
+  pending: ReadonlyMap<string, unknown>
+): Record<string, unknown> | null {
+  if (pending.size === 0) return frontmatter;
+
+  const merged: Record<string, unknown> = { ...(frontmatter ?? {}) };
+  for (const [key, value] of pending) {
+    if (isBlankValue(value)) {
+      delete merged[key];
+    } else {
+      merged[key] = value;
+    }
+  }
+
+  return merged;
+}
+
 /** 值 → 输入框里的文本（列表按逗号连接）。 */
 export function formatPropertyValue(value: unknown): string {
   if (value === null || value === undefined) return '';

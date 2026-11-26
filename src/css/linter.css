@@ -468,7 +468,8 @@
 }
 
 /* 胶囊本身复刻核心属性面板里 tags 的样式：圆角、内边距、底色都取主题变量，
-   悬停时底色加深一档；光标的默认箭头（它不是链接，用手型反而误导） */
+   悬停时底色加深一档。整体光标保持默认箭头，只有可点击搜索的 tag 文字（见
+   .pill-label.is-clickable）单独改手型，和旁边的删除符号区分开 */
 .style-tuner-properties-view .style-tuner-property-pill {
   display: inline-flex;
   align-items: center;
@@ -501,6 +502,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* tags 的标签本体可点击（点它跳去 `tag:xxx` 搜索）：悬停用手型，提示可点。
+   只加在带 onActivate 的 label 上——其它列表属性文字不可点、删除符号是删除，
+   两者都保持默认箭头，这样三种区域靠光标就能区分。 */
+.style-tuner-properties-view .style-tuner-property-pill-label.is-clickable {
+  cursor: pointer;
 }
 
 /* 删除按钮：颜色与文字同为 tag 强调色（与原生一致）。

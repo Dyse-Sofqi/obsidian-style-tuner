@@ -42,11 +42,17 @@ export interface PropertyRowHandlers {
   onTypeChange: (key: string, type: YamlPropertyType) => void;
   /** `tags` 的标签本体被点击：跳去搜索 `tag:xxx`（Obsidian 的默认行为） */
   onTagClick?: (tag: string) => void;
-  /** 给 `tags` 的输入框接上候选弹层；`getExisting` 返回当前行已有的标签，用于排除 */
-  attachTagSuggest?: (
+  /**
+   * 给**列表型属性**的输入框接上候选弹层：候选是全库其它笔记在该属性下已有的值、
+   * 按最近添加排好序；`getExisting` 返回本行已有的值，用于排除。
+   *
+   * 按键名取候选（不是按当前行的值），所以把键一起传过去。
+   */
+  attachValueSuggest?: (
+    key: string,
     input: HTMLInputElement,
     getExisting: () => string[],
-    onPick: (tag: string) => void
+    onPick: (value: string) => void
   ) => void;
 }
 
@@ -184,9 +190,10 @@ function buildCheckbox(row: PropertyRow, handlers: PropertyRowHandlers): HTMLEle
 /**
  * 一枚列表值。
  *
- * `onActivate` 用于 `tags`：Obsidian 里点标签本体是跳去搜索，不是编辑。
- * 视觉上不额外加下划线——悬停时胶囊底色变深已经够提示，光标保持默认箭头。
- * `×` 仍然是删除。
+ * `onActivate` 用于 `tags`：Obsidian 里点标签本体是跳去搜索，不是编辑。这类文字
+ * 悬停时光标变成手型（`is-clickable`），和旁边的 `×`（删除，始终是默认箭头）
+ * 区分开——用户一眼就知道点哪里是搜索、点哪里是删除。其余列表属性没有
+ * `onActivate`，文字仍是默认箭头。视觉上不加下划线，靠光标 + 胶囊底色加深提示。
  */
 function pill(text: string, onRemove: () => void, onActivate?: () => void): HTMLElement {
   const el = document.createElement('span');
@@ -196,6 +203,7 @@ function pill(text: string, onRemove: () => void, onActivate?: () => void): HTML
   label.className = 'style-tuner-property-pill-label';
   label.textContent = text;
   if (onActivate) {
+    label.classList.add('is-clickable');
     label.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -353,9 +361,10 @@ function buildListEditor(row: PropertyRow, handlers: PropertyRowHandlers): HTMLE
     }, 150);
   });
 
-  // tags 的候选：点进输入框就能看到全库已有标签，键入时按输入过滤
-  if (isTagList && handlers.attachTagSuggest) {
-    handlers.attachTagSuggest(input, () => items, (tag) => addItem(tag));
+  // 候选弹层：任何列表属性都给（不只是 tags），点进输入框就能看到全库已有的值，
+  // 键入时按输入过滤；顺序由索引给（最近添加在前），这里不再排序
+  if (handlers.attachValueSuggest) {
+    handlers.attachValueSuggest(row.key, input, () => items, (value) => addItem(value));
   }
 
   paint();
