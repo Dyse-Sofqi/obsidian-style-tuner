@@ -540,6 +540,11 @@ export default {
         'name': '属性键名',
         'placeholder': '键名',
       },
+      'label': {
+        'name': '属性译名',
+        'placeholder': '留空则显示键名',
+        'description': 'Obsidian 处于非英文界面时，属性标签页里用这个名字代替键名。只影响显示，写进笔记的仍是属性键名。',
+      },
       'property-type': {
         'name': '属性类型',
         'reserved': 'aliases、tags、cssclasses 的类型由 Obsidian 固定为列表，这里不可更改，也不会写入 types.json。',

@@ -1,4 +1,4 @@
-import { ItemView, TFile, WorkspaceLeaf, setIcon } from 'obsidian';
+import { ItemView, TFile, WorkspaceLeaf, getLanguage, setIcon } from 'obsidian';
 import type LinterPlugin from '../../main';
 import { getTextInLanguage } from '../../lang/helpers';
 import { logWarn } from '../../utils/logger';
@@ -44,6 +44,17 @@ const WRITE_DELAY = 400;
 const RENDER_DELAY = 60;
 /** 自己写盘后的一小段时间内忽略元数据变更，避免把自己刚画好的行又重画掉。 */
 const WRITE_SUPPRESS = 800;
+
+/**
+ * 当前界面语言是不是英文。
+ *
+ * `getLanguage()` 给的是 Obsidian 自己的界面语言（`en` / `zh` / `zh-TW`…）。
+ * 「属性译名」只在非英文界面下生效：英文界面里键名本身就是用户看得懂的名字，
+ * 再套一层译名只会让人对不上 frontmatter。
+ */
+function isEnglishUi(): boolean {
+  return getLanguage().toLowerCase().startsWith('en');
+}
 
 export class PropertiesView extends ItemView {
   private readonly plugin: LinterPlugin;
@@ -226,6 +237,9 @@ export class PropertiesView extends ItemView {
       registeredType: (key) => readPropertyType(this.app, key),
       extraKeys: this.extraKeys,
       typeHints,
+      // 英文界面不翻译：键名本身就是英文，译名只会多一层隔阂。
+      // 语言在会话内不会变，所以每次渲染现算一次即可。
+      useLabels: !isEnglishUi(),
     });
 
     if (rows.length === 0) {

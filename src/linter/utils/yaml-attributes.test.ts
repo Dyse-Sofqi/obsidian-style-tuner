@@ -221,3 +221,31 @@ describe('helpers', () => {
 		expect(inheritYamlKeys([], ['a', 'b'])).toEqual(['a', 'b']);
 	});
 });
+
+describe('entry labels', () => {
+	it('keeps a translated label on the entry', () => {
+		const [kept] = normalizeYamlAttributeEntries([
+			{ key: 'memo', type: 'text', value: '', label: ' 备注 ' },
+		]);
+
+		expect(kept.label).toBe('备注');
+	});
+
+	it('drops an empty label instead of storing a blank string', () => {
+		const [dropped] = normalizeYamlAttributeEntries([
+			{ key: 'memo', type: 'text', value: '', label: '   ' },
+		]);
+
+		expect(dropped).not.toHaveProperty('label');
+	});
+
+	it('treats a changed label as a change worth saving', () => {
+		const raw = [{ key: 'memo', type: 'text', value: '', label: '备注' }];
+		expect(normalizeYamlAttributeEntries(raw)).toBe(raw);
+
+		const stale = [{ key: 'memo', type: 'text', value: '', label: 42 }];
+		const fixed = normalizeYamlAttributeEntries(stale);
+		expect(fixed).not.toBe(stale);
+		expect(fixed[0]).not.toHaveProperty('label');
+	});
+});

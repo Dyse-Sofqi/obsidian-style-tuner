@@ -303,6 +303,7 @@ export type ListItemValidation = (entry: string) => [boolean, string];
  */
 export class YamlAttributeModal extends FormModal {
   private key: string;
+  private label: string;
   private type: YamlPropertyType;
   private value: string;
   private keyInputEl: HTMLInputElement | undefined;
@@ -317,6 +318,7 @@ export class YamlAttributeModal extends FormModal {
   ) {
     super(app);
     this.key = initial?.key ?? '';
+    this.label = initial?.label ?? '';
     this.type = initial?.type ?? 'text';
     this.value = initial?.value ?? '';
 
@@ -333,6 +335,19 @@ export class YamlAttributeModal extends FormModal {
             });
         this.keyInputEl = cb.inputEl;
       });
+    });
+
+    this.addField((field) => {
+      field.setName(getTextInLanguage('rules.insert-yaml-attributes.label.name'));
+      field.addText((cb) => {
+        cb.setPlaceholder(getTextInLanguage('rules.insert-yaml-attributes.label.placeholder'))
+            .setValue(this.label)
+            .onChange((v) => {
+              this.label = v;
+            });
+      });
+      // setHelp 是往容器里 append 的，必须放在 addText 之后，说明才会落在输入框下方
+      field.setHelp(getTextInLanguage('rules.insert-yaml-attributes.label.description'));
     });
 
     this.addField((field) => {
@@ -407,6 +422,10 @@ export class YamlAttributeModal extends FormModal {
       type: fixedPropertyTypeFor(key) ?? this.type,
       value: this.value.trim(),
     };
+
+    // 译名留空就不写进条目：磁盘里不出现多余的 `label: ""`
+    const label = this.label.trim();
+    if (label) entry.label = label;
 
     const result = validateYamlAttribute(entry);
     if (!result.ok) {

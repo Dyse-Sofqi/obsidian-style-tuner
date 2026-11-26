@@ -85,6 +85,14 @@ export interface YamlAttributeEntry {
   type: YamlPropertyType;
   /** 默认值；留空则按类型插入骨架（见 `renderYamlAttributeLine`） */
   value: string;
+  /**
+   * 属性译名。
+   *
+   * 只影响**界面显示**：Obsidian 处于非英文语言时，属性视图的左侧用这个名字代替
+   * 键名（写进笔记的永远是 `key`，frontmatter 不会因为译名而改变）。留空表示
+   * 直接显示键名。
+   */
+  label?: string;
 }
 
 export function isYamlPropertyType(value: unknown): value is YamlPropertyType {
@@ -152,11 +160,17 @@ export function toYamlAttributeEntry(raw: unknown): YamlAttributeEntry | null {
   const key = typeof record.key === 'string' ? record.key.trim() : '';
   if (!key) return null;
 
-  return withFixedPropertyType({
+  const entry: YamlAttributeEntry = {
     key,
     type: isYamlPropertyType(record.type) ? record.type : 'text',
     value: typeof record.value === 'string' ? record.value : '',
-  });
+  };
+
+  // 译名留空就当没写：不往磁盘里塞空字符串，读的地方也不必再判空
+  const label = typeof record.label === 'string' ? record.label.trim() : '';
+  if (label) entry.label = label;
+
+  return withFixedPropertyType(entry);
 }
 
 /**
@@ -181,7 +195,8 @@ export function normalizeYamlAttributeEntries(raw: unknown): YamlAttributeEntry[
       typeof item === 'string' ||
       item.key !== entry.key ||
       item.type !== entry.type ||
-      item.value !== entry.value
+      item.value !== entry.value ||
+      (item.label ?? '') !== (entry.label ?? '')
     ) {
       changed = true;
     }

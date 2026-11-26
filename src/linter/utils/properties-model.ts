@@ -25,6 +25,14 @@ import {
 export interface PropertyRow {
   /** frontmatter 键名 */
   key: string;
+  /**
+   * 界面上显示的名字。
+   *
+   * 只有「标准属性」在非英文界面下、且条目配了译名时才有值；其余情况为
+   * `undefined`，视图直接用 `key`。**任何写入仍以 `key` 为准**——这个字段只影响
+   * 标签页里的显示。
+   */
+  displayName?: string;
   /** 用哪种控件编辑（固定类型 > 配置类型 > types.json 登记 > 按值推断） */
   type: YamlPropertyType;
   /** 当前值；`undefined` 表示文档里还没有这个键 */
@@ -52,6 +60,13 @@ export interface BuildPropertyRowsArgs {
    * 规则却按 YYYYMMDDHHmmss 写」的分裂。
    */
   typeHints?: Record<string, YamlPropertyType>;
+  /**
+   * 是否用条目的「译名」当显示名。
+   *
+   * 由视图按 Obsidian 当前界面语言决定（英文界面下不译，键名本身就是最自然的
+   * 名字）。模型只认这个布尔值，不 import obsidian，单测才好写。
+   */
+  useLabels?: boolean;
 }
 
 const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -125,10 +140,12 @@ function makeRow(
   configured: boolean,
   configType: YamlPropertyType | null,
   registeredType?: (key: string) => YamlPropertyType | null,
-  hintType: YamlPropertyType | null = null
+  hintType: YamlPropertyType | null = null,
+  displayName?: string
 ): PropertyRow {
   return {
     key,
+    displayName,
     type: resolvePropertyType(key, configType, hintType, value, registeredType),
     value,
     present,
@@ -143,6 +160,7 @@ export function buildPropertyRows({
   registeredType,
   extraKeys = [],
   typeHints,
+  useLabels = false,
 }: BuildPropertyRowsArgs): PropertyRow[] {
   const fm = frontmatter ?? {};
   const rows: PropertyRow[] = [];
@@ -157,6 +175,7 @@ export function buildPropertyRows({
     seen.add(key);
 
     const present = Object.prototype.hasOwnProperty.call(fm, key);
+    const label = useLabels ? entry.label?.trim() : undefined;
     rows.push(
       makeRow(
         key,
@@ -165,7 +184,8 @@ export function buildPropertyRows({
         true,
         entry.type,
         registeredType,
-        hintFor(key)
+        hintFor(key),
+        label || undefined
       )
     );
   }

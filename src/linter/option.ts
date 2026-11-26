@@ -302,7 +302,9 @@ export class YamlAttributeOption extends Option {
     const preview = value !== ''
       ? value
       : renderYamlAttributeLine({ ...entry, value: '' }).replace(/\n\s*/g, ' ');
-    return `${label} · ${preview}`;
+    // 配了译名就一并显示：列表行只看得到键名，译名否则要打开表单才知道
+    const name = entry.label ? `${entry.label} · ` : '';
+    return `${name}${label} · ${preview}`;
   }
 }
 

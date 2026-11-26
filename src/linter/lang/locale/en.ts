@@ -576,6 +576,11 @@ export default {
         'name': 'Property key',
         'placeholder': 'key',
       },
+      'label': {
+        'name': 'Display name',
+        'placeholder': 'Falls back to the key',
+        'description': 'When Obsidian is not in English, the properties tab shows this name instead of the key. Display only: the note still stores the key.',
+      },
       'property-type': {
         'name': 'Property type',
         'reserved': 'The type of aliases, tags and cssclasses is fixed to a list by Obsidian, so it is locked here and is not written to types.json.',

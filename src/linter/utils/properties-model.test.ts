@@ -191,3 +191,37 @@ describe('parsePropertyInput', () => {
     expect(parsePropertyInput('hi', 'text')).toBe('hi');
   });
 });
+
+describe('display names', () => {
+  const labelled: YamlAttributeEntry = { key: 'memo', type: 'text', value: '', label: '备注' };
+
+  it('uses the entry label only when labels are enabled', () => {
+    const withLabels = buildPropertyRows({
+      frontmatter: { memo: 'hi' },
+      entries: [labelled],
+      useLabels: true,
+    });
+    expect(withLabels[0]).toMatchObject({ key: 'memo', displayName: '备注' });
+
+    const withoutLabels = buildPropertyRows({
+      frontmatter: { memo: 'hi' },
+      entries: [labelled],
+    });
+    expect(withoutLabels[0].displayName).toBeUndefined();
+  });
+
+  it('leaves document-only keys without a display name', () => {
+    const rows = buildPropertyRows({
+      frontmatter: { author: 'me' },
+      entries: [labelled],
+      useLabels: true,
+    });
+    expect(rows[1]).toMatchObject({ key: 'author', configured: false });
+    expect(rows[1].displayName).toBeUndefined();
+  });
+
+  it('falls back to the key when the entry has no label', () => {
+    const rows = buildPropertyRows({ frontmatter: null, entries: [entry('memo')], useLabels: true });
+    expect(rows[0].displayName).toBeUndefined();
+  });
+});

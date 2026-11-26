@@ -521,6 +521,11 @@ export default {
         'name': '屬性鍵名',
         'placeholder': '鍵名',
       },
+      'label': {
+        'name': '屬性譯名',
+        'placeholder': '留空則顯示鍵名',
+        'description': 'Obsidian 處於非英文介面時，屬性分頁中用這個名字取代鍵名。只影響顯示，寫進筆記的仍是屬性鍵名。',
+      },
       'property-type': {
         'name': '屬性類型',
         'reserved': 'aliases、tags、cssclasses 的類型由 Obsidian 固定為清單，這裡不可更改，也不會寫入 types.json。',

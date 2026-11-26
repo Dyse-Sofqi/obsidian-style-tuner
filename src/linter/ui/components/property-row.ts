@@ -473,7 +473,13 @@ export function createPropertyRow(
 
   const nameEl = document.createElement('span');
   nameEl.className = 'style-tuner-property-name';
-  nameEl.textContent = row.key;
+  // 译名只换显示文字；`dataset.key` / 各项 handler 仍用真实键名，写入不受影响。
+  // 外观与普通属性名保持一致，不做下划线 / 光标之类的标记。
+  nameEl.textContent = row.displayName ?? row.key;
+  if (row.displayName) {
+    // 只留一个悬停提示，方便回头确认 frontmatter 里的真实键名
+    nameEl.title = row.key;
+  }
   keyEl.appendChild(nameEl);
 
   rowEl.appendChild(keyEl);
